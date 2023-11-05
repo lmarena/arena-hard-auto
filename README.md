@@ -7,7 +7,9 @@ python -m fastchat.llm_judge.gen_api_answer --bench-name arena-bench-v1 --model 
 ```
 To generate reference answers for GPT-4 judge.
 ```console
-python -m fastchat.llm_judge.gen_api_answer --bench-name arena-bench-v1 --model gpt-4 --answer-file data/arena-bench-v1/reference_answer/gpt-4.jsonl
+python -m fastchat.llm_judge.gen_api_answer --bench-name arena-bench-v1 \
+          --model gpt-4 \
+          --answer-file data/arena-bench-v1/reference_answer/gpt-4.jsonl
 ```
 To generate GPT-4 judgment.
 ```console
