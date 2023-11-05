@@ -1,0 +1,25 @@
+name: arena-hard-200-judgment
+description: Config for evaluating a model against arena-hard-200
+
+type: single-math-v2
+category: arena-hard-200
+judge_model: gpt-4
+
+reference: True
+ref_model: gpt-4
+
+temperature: 0
+max_tokens: 1024
+
+# you can customize endpoint url as follows
+# endpoint_list:
+#   - api_base: [ENDPOINT-URL]
+#     api_key: [YOUR-API-KEY]
+
+endpoint_list: null
+
+system_prompt: "Please act as an impartial judge and evaluate the quality of the response provided by an AI assistant to the user question displayed below. Your evaluation should consider correctness and helpfulness. You will be given a reference answer and the assistant's answer. Begin your evaluation by comparing the assistant's answer with the reference answer. Identify and correct any mistakes. Be as objective as possible. After providing your explanation, you must rate the response on a scale of 1 to 10 by strictly following this format: \"[[rating]]\", for example: \"Rating: [[5]]\".\n\n"
+
+prompt_template: "[Question]\n{question_1}\n\n[The Start of Reference Answer]\n{ref_answer_1}\n[The End of Reference Answer]\n\n[The Start of Assistant's Answer]\n{answer_1}\n[The End of Assistant's Answer]"
+
+few_shot: null
