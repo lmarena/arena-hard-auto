@@ -1,4 +1,6 @@
 # Arena-Bench-v1
+World's Hardest LLM Benchmark! 
+
 ### Evaluate models using arena-bench-v1:
 To generate model answers using FastChat.
 ```console
