@@ -1,4 +1,4 @@
-# Arena-Bench-v1
+# Arena-Bench-V1
 World's Hardest LLM Benchmark! 
 
 ### Evaluate models using arena-bench-v1:
@@ -22,6 +22,11 @@ python ../judge_any.py --config-file data/arena-bench-v1_config.yaml \
 Evaluate arena-bench-v1 scores.
 ```console
 python benchmark_eval.py --bench-name arena-bench-v1
+```
+
+### View arena-bench-v1
+```console
+python qa_broswer.py --bench-name arena-bench-v1
 ```
 
 ### Creating Challenging Benchmark Questions
