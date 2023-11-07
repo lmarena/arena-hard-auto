@@ -13,7 +13,6 @@ import gradio as gr
 from fastchat.llm_judge.common import (
     load_questions,
     load_model_answers,
-    load_single_model_judgments,
     get_single_judge_explanation,
 )
 
@@ -214,6 +213,31 @@ def load_reference(filename):
                 line = json.loads(line)
                 references[line["question_id"]] = line["choices"][0]["turns"][0]
     return references
+
+
+def load_single_model_judgments(filename: str):
+    """Load model judgments.
+
+    The return value is a dict of type:
+    Dict[judge: Tuple -> Dict[game_key: tuple -> game_result: dict]
+    """
+    judge_dict = {}
+
+    for line in open(filename):
+        obj = json.loads(line)
+        judge = tuple(["gpt-4","single-math-v1"])
+        qid, model = obj["question_id"], obj["model"]
+
+        if judge not in judge_dict:
+            judge_dict[judge] = {}
+
+        gamekey = (qid, model)
+
+        judge_dict[judge][gamekey] = {
+            "score": obj["score"],
+            "judgment": obj["judgment"],
+        }
+    return judge_dict
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
-name: arena-hard-200-judgment
+name: arena-bench-judgment
 description: Config for evaluating a model against arena-hard-200
 
-type: single-math-v2
+type: single-math-v1
 category: arena-hard-200
 judge_model: gpt-4
 
