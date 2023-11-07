@@ -4,6 +4,7 @@ python3 qa_browser.py --share
 """
 
 import argparse
+import json
 from collections import defaultdict
 import re
 
@@ -13,11 +14,7 @@ from fastchat.llm_judge.common import (
     load_questions,
     load_model_answers,
     load_single_model_judgments,
-    load_pairwise_model_judgments,
-    resolve_single_judgment_dict,
-    resolve_pairwise_judgment_dict,
     get_single_judge_explanation,
-    get_pairwise_judge_explanation,
 )
 
 
@@ -26,9 +23,7 @@ model_answers = {}
 
 model_judgments_normal_single = {}
 model_judgments_math_single = {}
-
-model_judgments_normal_pairwise = {}
-model_judgments_math_pairwise = {}
+model_reference_answers = {}
 
 question_selector_map = {}
 category_selector_map = defaultdict(list)
@@ -47,7 +42,7 @@ def display_single_answer(question_selector, model_selector1, request: gr.Reques
     qid = q["question_id"]
 
     ans1 = model_answers[model_selector1][qid]
-
+    
     chat_mds = single_to_gradio_chat_mds(q, ans1)
     gamekey = (qid, model_selector1)
 
@@ -75,7 +70,7 @@ def post_process_answer(x):
 def single_to_gradio_chat_mds(question, ans, turn=None):
     end = len(question["turns"]) if turn is None else turn + 1
 
-    mds = ["", "", "", "", ""]
+    mds = ["", "", ""]
     for i in range(end):
         base = i * 2
         if i == 0:
@@ -86,18 +81,9 @@ def single_to_gradio_chat_mds(question, ans, turn=None):
             ans["choices"][0]["turns"][i].strip()
         )
 
-    ref = question.get("reference", ["", ""])
+    ref = model_reference_answers[question["question_id"]]
 
-    ref_md = ""
-    if turn is None:
-        if ref[0] != "" or ref[1] != "":
-            mds[4] = f"##### Reference Solution\nQ1. {ref[0]}\nQ2. {ref[1]}"
-    else:
-        x = ref[turn] if turn < len(ref) else ""
-        if x:
-            mds[4] = f"##### Reference Solution\n{ref[turn]}"
-        else:
-            mds[4] = ""
+    mds[2] = f"##### Reference Solution\n{ref}"
     return mds
 
 
@@ -126,7 +112,7 @@ def build_single_answer_browser_tab():
     with gr.Row():
         with gr.Column(scale=1, min_width=200):
             category_selector = gr.Dropdown(
-                choices=category_selector_choices, label="Category", container=False
+                choices=category_selector_choices, value='arena-bench-v1', label="Category", container=False
             )
         with gr.Column(scale=100):
             question_selector = gr.Dropdown(
@@ -182,16 +168,13 @@ def build_single_answer_browser_tab():
 
 block_css = """
 #user_question_1 {
-    background-color: #DEEBF7;
-}
-#user_question_2 {
-    background-color: #E2F0D9;
+    background-color: #0B0F19;
 }
 #reference {
-    background-color: #FFF2CC;
+    background-color: #0B0F19;
 }
 #model_explanation {
-    background-color: #FBE5D6;
+    background-color: #0B0F19;
 }
 """
 
@@ -205,13 +188,13 @@ def build_demo():
     build_question_selector_map()
 
     with gr.Blocks(
-        title="MT-Bench Browser",
+        title="Arena-Bench Browser",
         theme=gr.themes.Base(text_size=gr.themes.sizes.text_lg),
         css=block_css,
     ) as demo:
         gr.Markdown(
             """
-# MT-Bench Browser
+# Arena-Bench-V1
 The code to generate answers and judgments is at [fastchat.llm_judge](https://github.com/lm-sys/FastChat/tree/main/fastchat/llm_judge).
 """
         )
@@ -224,6 +207,15 @@ The code to generate answers and judgments is at [fastchat.llm_judge](https://gi
     return demo
 
 
+def load_reference(filename):
+    references = {}
+    with open(filename) as fin:
+            for line in fin:
+                line = json.loads(line)
+                references[line["question_id"]] = line["choices"][0]["turns"][0]
+    return references
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", type=str, default="0.0.0.0")
@@ -234,10 +226,8 @@ if __name__ == "__main__":
     print(args)
 
     question_file = f"data/{args.bench_name}/question.jsonl"
+    reference_file = f"data/{args.bench_name}/reference_answer/gpt-4.jsonl"
     answer_dir = f"data/{args.bench_name}/model_answer"
-    # pairwise_model_judgment_file = (
-    #     f"data/{args.bench_name}/model_judgment/gpt-4_pair.jsonl"
-    # )
     single_model_judgment_file = (
         f"data/{args.bench_name}/model_judgment/gpt-4_single.jsonl"
     )
@@ -252,9 +242,8 @@ if __name__ == "__main__":
     model_judgments_normal_single = (
         model_judgments_math_single
     ) = load_single_model_judgments(single_model_judgment_file)
-    # model_judgments_normal_pairwise = (
-    #     model_judgments_math_pairwise
-    # ) = load_pairwise_model_judgments(pairwise_model_judgment_file)
+
+    model_reference_answers = load_reference(reference_file)
 
     demo = build_demo()
     demo.queue(concurrency_count=10, status_update_rate=10, api_open=False).launch(
