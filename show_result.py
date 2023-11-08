@@ -4,7 +4,6 @@ import os
 import re
 import math
 import numpy as np
-from collections import OrderedDict
 from glob import glob
 
 pattern = re.compile(r"\[\[(\d*?)\]\]")
