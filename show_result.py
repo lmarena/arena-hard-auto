@@ -7,19 +7,19 @@ from glob import glob
 pattern = re.compile(r"\[\[(\d*?)\]\]")
 
 def evaluate(df):
-    model_names = df["model_id"].unique()
+    model_names = df["model"].unique()
     model_scores = {}
     for model_name in model_names:
         scores = []
         for i, row in df.iterrows():
-            if row["model_id"] != model_name:
+            if row["model"] != model_name:
                 continue
-            matches = pattern.findall(row["judgment"][0]["turns"][0])
+            matches = pattern.findall(row["judgment"])
             # remove empty string
             matches = [m for m in matches if m != ""]
             if len(matches) == 0:
                 print("WARNING: no score pattern matched... skipping "
-                      f"(model={row['model_id']}, qid={row['question_id']})")
+                      f"(model={row['model']}, qid={row['question_id']})")
             elif len(matches) == 1:
                 scores.append(int(matches[0]))
             else:
@@ -31,7 +31,7 @@ def evaluate(df):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--bench-name", type=str, required=True)
+    parser.add_argument("--bench-name", type=str, default="arena-bench-v1")
     args = parser.parse_args()
     print(args)
 
