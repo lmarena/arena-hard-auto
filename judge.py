@@ -127,8 +127,8 @@ def judgment(**args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config-file", type=str, default="arena-bench-v1")
-    parser.add_argument("--bench-name", type=str, required=True)
+    parser.add_argument("--config-file", type=str, default="data/arena-bench-v1_config.yaml")
+    parser.add_argument("--bench-name", type=str, default="arena-bench-v1")
     parser.add_argument(
         "--model",
         type=str,
