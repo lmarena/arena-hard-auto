@@ -4,7 +4,6 @@ import os
 import re
 import math
 import numpy as np
-from collections import OrderedDict
 from glob import glob
 
 pattern = re.compile(r"\[\[(\d*?)\]\]")
@@ -35,4 +34,4 @@ if __name__ == "__main__":
     sorted_dict = {keys[i]: values[i] for i in sorted_value_index}
 
     for model_name, scores in sorted_dict.items():
-        print(f"Model: {model_name : <20} | Score: {sum(scores) / len(scores) : ^20} | # Valid-score: {len(scores) : >20}")
+        print(f"Model: {model_name : <20} | Score: {sum(scores) / len(scores) : ^20} | # Valid-score: {len(scores) : >2}")
