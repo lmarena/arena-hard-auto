@@ -9,7 +9,7 @@ pip install "fschat[model_worker,webui]"
 For more regarding FastChat, please check out [github.com/lm-sys/FastChat](https://github.com/lm-sys/FastChat).
 
 ### Evaluate models using arena-bench-v1:
-To generate model answers using FastChat. 
+To generate model answers using FastChat. For more about `gen_api_answer`, please refer to FastChat.
 ```console
 python -m fastchat.llm_judge.gen_api_answer \
       --bench-name arena-bench-v1 \
