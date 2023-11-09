@@ -1,12 +1,9 @@
-"""
-Usage:
-python3 qa_browser.py --share
-"""
-
 import argparse
 import json
 from collections import defaultdict
 import re
+import glob
+import os
 
 import gradio as gr
 
@@ -40,6 +37,7 @@ def display_single_answer(question_selector, model_selector1, request: gr.Reques
     q = question_selector_map[question_selector]
     qid = q["question_id"]
 
+    print(model_answers[model_selector1].keys())
     ans1 = model_answers[model_selector1][qid]
     
     chat_mds = single_to_gradio_chat_mds(q, ans1)
@@ -215,28 +213,32 @@ def load_reference(filename):
     return references
 
 
-def load_single_model_judgments(filename: str):
+def load_single_model_judgments(dir: str):
     """Load model judgments.
 
     The return value is a dict of type:
     Dict[judge: Tuple -> Dict[game_key: tuple -> game_result: dict]
     """
+    filenames = glob.glob(os.path.join(dir, "*.jsonl"))
+    filenames.sort()
+
     judge_dict = {}
+    for filename in filenames: 
+        print(filename)
+        for line in open(filename):
+            obj = json.loads(line)
+            judge = tuple(["gpt-4","single-math-v1"])
+            qid, model = obj["question_id"], obj["model"]
 
-    for line in open(filename):
-        obj = json.loads(line)
-        judge = tuple(["gpt-4","single-math-v1"])
-        qid, model = obj["question_id"], obj["model"]
+            if judge not in judge_dict:
+                judge_dict[judge] = {}
 
-        if judge not in judge_dict:
-            judge_dict[judge] = {}
+            gamekey = (qid, model)
 
-        gamekey = (qid, model)
-
-        judge_dict[judge][gamekey] = {
-            "score": obj["score"],
-            "judgment": obj["judgment"],
-        }
+            judge_dict[judge][gamekey] = {
+                "score": obj["score"],
+                "judgment": obj["judgment"],
+            }
     return judge_dict
 
 
@@ -252,8 +254,8 @@ if __name__ == "__main__":
     question_file = f"data/{args.bench_name}/question.jsonl"
     reference_file = f"data/{args.bench_name}/reference_answer/gpt-4.jsonl"
     answer_dir = f"data/{args.bench_name}/model_answer"
-    single_model_judgment_file = (
-        f"data/{args.bench_name}/model_judgment/gpt-4_single.jsonl"
+    judgment_dir = (
+        f"data/{args.bench_name}/model_judgment"
     )
 
     # Load questions
@@ -265,7 +267,7 @@ if __name__ == "__main__":
     # Load model judgments
     model_judgments_normal_single = (
         model_judgments_math_single
-    ) = load_single_model_judgments(single_model_judgment_file)
+    ) = load_single_model_judgments(judgment_dir)
 
     model_reference_answers = load_reference(reference_file)
 
