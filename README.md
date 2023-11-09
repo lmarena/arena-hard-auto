@@ -20,7 +20,7 @@ We have prepared reference answers, which generated using GPT-4. To generate GPT
 ```console
 python judge.py --parallel [number of concurrent api calls]
 ```
-By default `judge.py` will judge all the jsonl files in `/model_answer`. To specify which model you want to generate judgment for use the `--model` argument. \
+By default `judge.py` will judge all the jsonl files in `/model_answer`. To specify which model you want to generate judgment for use the `--model` argument.\
 e.g.
 ```console
 python judge.py --model gpt-3.5-turbo --parallel 4
