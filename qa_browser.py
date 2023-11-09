@@ -224,7 +224,6 @@ def load_single_model_judgments(dir: str):
 
     judge_dict = {}
     for filename in filenames:
-        print(filename)
         for line in open(filename):
             obj = json.loads(line)
             judge = tuple(["gpt-4","single-math-v1"])
