@@ -10,6 +10,7 @@ For more regarding FastChat, please check out [github.com/lm-sys/FastChat](https
 
 ### Evaluate models using arena-bench-v1:
 To generate model answers using FastChat. For more about `gen_api_answer`, please refer to FastChat.
+Specify the number of concurrent api calls using argument `--parallel` to distribute api calls across different parallel workers.
 ```console
 python -m fastchat.llm_judge.gen_api_answer \
       --bench-name arena-bench-v1 \
