@@ -35,6 +35,7 @@ We have an UI interface built for you to easily view generated and pre-existing 
 ```console
 python qa_broswer.py --shared
 ```
+![plot](misc/qa_browser.png)
 
 Arena-bench is based on our paper `LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset`. For more background and information behind arena-bench, please check out our paper. 
 ## Citation
