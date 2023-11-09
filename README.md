@@ -39,9 +39,8 @@ python qa_broswer.py --shared
 ![plot](misc/qa_browser.png)
 
 ### Serve Your Own Models to Generate Answers
-Edit `data/arena-bench-v1_config.yaml` to add your api endpoint. 
+Edit `data/arena-bench-v1_config.yaml` to add your api endpoint. You can customize endpoint url as follows.
 ```
-you can customize endpoint url as follows
 endpoint_list:
       - api_base: [ENDPOINT-URL]
       - api_key: [YOUR-API-KEY]
