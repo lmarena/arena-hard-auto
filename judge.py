@@ -112,14 +112,14 @@ def judgment(**args):
 
     with open(output_file, "a") as f:
         output = {
-            "question_id": question["question_id"],
+            "question_id":question["question_id"],
             # "answer_id": shortuuid.uuid(),
-            "model": answer["model_id"],
+            "model":answer["model_id"],
             # "prompt": conv.messages,
-            "user_prompt": conv.messages[0][1],
+            "user_prompt":conv.messages[0][1],
             # "judgment": [{"index": 0, "turns": [judgment]}],
-            "judgment": judgment,
-            "score": score
+            "judgment":judgment,
+            "score":score
         }
 
         f.write(json.dumps(output, ensure_ascii=False) + "\n")
@@ -127,8 +127,8 @@ def judgment(**args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config-file", type=str, default="arena-bench-v1")
-    parser.add_argument("--bench-name", type=str, required=True)
+    parser.add_argument("--config-file", type=str, default="data/arena-bench-v1_config.yaml")
+    parser.add_argument("--bench-name", type=str, default="arena-bench-v1")
     parser.add_argument(
         "--model",
         type=str,
