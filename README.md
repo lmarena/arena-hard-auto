@@ -38,6 +38,15 @@ python qa_broswer.py --shared
 ```
 ![plot](misc/qa_browser.png)
 
+### Serve Your Own Models to Generate Answers
+Edit `data/arena-bench-v1_config.yaml` to add your api endpoint. 
+```
+you can customize endpoint url as follows
+endpoint_list:
+      - api_base: [ENDPOINT-URL]
+      - api_key: [YOUR-API-KEY]
+```
+
 Arena-bench is based on our paper `LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset`. For more background and information behind arena-bench, please check out our paper. 
 ## Citation
 ```
