@@ -10,18 +10,19 @@ For more regarding FastChat, please check out [github.com/lm-sys/FastChat](https
 
 ### Evaluate models using arena-bench-v1:
 To generate model answers using FastChat. For more about `gen_api_answer`, please refer to FastChat.
+Specify the number of concurrent api calls using argument `--parallel` to distribute api calls across different parallel workers.
 ```console
 python -m fastchat.llm_judge.gen_api_answer \
       --bench-name arena-bench-v1 \
-      --model [insert model name] \
+      --model [model name] \
       --parallel [number of concurrent api calls]
 ```
 We have prepared reference answers, which generated using GPT-4. To generate GPT-4 judgment on model answers run `judge.py`.
 ```console
 python judge.py --parallel [number of concurrent api calls]
 ```
-By default `judge.py` will judge all the jsonl files in `/model_answer`. To specify which model you want to generate judgment for use the `--model` argument.
-e.g.
+By default `judge.py` will judge all the jsonl files in `/model_answer`. To specify which model you want to generate judgment for use the `--model` argument.\
+e.g. The following generates judgment for gpt-3.5-turbo's answers with 4 parallel api calls.
 ```console
 python judge.py --model gpt-3.5-turbo --parallel 4
 ```
@@ -35,9 +36,26 @@ We have an UI interface built for you to easily view generated and pre-existing 
 ```console
 python qa_broswer.py --shared
 ```
+![plot](misc/qa_browser.png)
 
-Arena-bench is based on our paper `LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset`. For more background and information behind arena-bench, please check out our paper. 
+### Serve Your Own Models to Generate Answers
+To generate model answers using your own api endpoints, add your endpoint url to your command via the `--openai-api-base` argument.
+```console
+python -m fastchat.llm_judge.gen_api_answer \
+      --bench-name arena-bench-v1 \
+      --model [model name] \
+      --parallel [number of concurrent api calls] \
+      --openai-api-base [api endpoint url]
+```
+To customize your LLM judge, edit `data/arena-bench-v1_config.yaml` to add your api endpoint. You can customize endpoint url as follow.
+```
+endpoint_list:
+      - api_base: [ENDPOINT-URL]
+      - api_key: [YOUR-API-KEY]
+```
+
 ## Citation
+Arena-bench is based on our paper `LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset`. For more background and information behind arena-bench, please check out our paper. 
 ```
 @misc{zheng2023lmsyschat1m,
       title={LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset}, 
