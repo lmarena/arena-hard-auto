@@ -112,14 +112,14 @@ def judgment(**args):
 
     with open(output_file, "a") as f:
         output = {
-            "question_id": question["question_id"],
+            "question_id":question["question_id"],
             # "answer_id": shortuuid.uuid(),
-            "model": answer["model_id"],
+            "model":answer["model_id"],
             # "prompt": conv.messages,
-            "user_prompt": conv.messages[0][1],
+            "user_prompt":conv.messages[0][1],
             # "judgment": [{"index": 0, "turns": [judgment]}],
-            "judgment": judgment,
-            "score": score
+            "judgment":judgment,
+            "score":score
         }
 
         f.write(json.dumps(output, ensure_ascii=False) + "\n")

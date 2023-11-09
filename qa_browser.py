@@ -223,7 +223,7 @@ def load_single_model_judgments(dir: str):
     filenames.sort()
 
     judge_dict = {}
-    for filename in filenames: 
+    for filename in filenames:
         print(filename)
         for line in open(filename):
             obj = json.loads(line)
