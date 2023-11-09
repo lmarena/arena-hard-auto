@@ -14,7 +14,7 @@ Specify the number of concurrent api calls using argument `--parallel` to distri
 ```console
 python -m fastchat.llm_judge.gen_api_answer \
       --bench-name arena-bench-v1 \
-      --model [insert model name] \
+      --model [model name] \
       --parallel [number of concurrent api calls]
 ```
 We have prepared reference answers, which generated using GPT-4. To generate GPT-4 judgment on model answers run `judge.py`.
@@ -39,15 +39,23 @@ python qa_broswer.py --shared
 ![plot](misc/qa_browser.png)
 
 ### Serve Your Own Models to Generate Answers
-Edit `data/arena-bench-v1_config.yaml` to add your api endpoint. You can customize endpoint url as follow.
+To generate model answers using your own api endpoints, add your endpoint url to your command via the `--openai-api-base` argument.
+```console
+python -m fastchat.llm_judge.gen_api_answer \
+      --bench-name arena-bench-v1 \
+      --model [model name] \
+      --parallel [number of concurrent api calls] \
+      --openai-api-base [api endpoint url]
+```
+To customize your LLM judge, edit `data/arena-bench-v1_config.yaml` to add your api endpoint. You can customize endpoint url as follow.
 ```
 endpoint_list:
       - api_base: [ENDPOINT-URL]
       - api_key: [YOUR-API-KEY]
 ```
 
-Arena-bench is based on our paper `LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset`. For more background and information behind arena-bench, please check out our paper. 
 ## Citation
+Arena-bench is based on our paper `LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset`. For more background and information behind arena-bench, please check out our paper. 
 ```
 @misc{zheng2023lmsyschat1m,
       title={LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset}, 
