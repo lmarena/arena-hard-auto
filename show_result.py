@@ -24,7 +24,7 @@ if __name__ == "__main__":
     model_scores = {}
     for judgment_file in glob(os.path.join("data", args.bench_name, "model_judgment", "*.jsonl")):
         df = pd.read_json(judgment_file, lines=True)
-        assert len(df["model"].unique()) == 1
+        assert len(df["model"].unique()) == 1, df["model"].unique()
         model_scores[df.iloc[0]["model"]] = evaluate(df)
 
     keys = list(model_scores.keys())
@@ -35,3 +35,4 @@ if __name__ == "__main__":
 
     for model_name, scores in sorted_dict.items():
         print(f"Model: {model_name : <20} | Score: {sum(scores) / len(scores) : ^20} | # Valid-score: {len(scores) : >2}")
+
