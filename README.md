@@ -4,18 +4,24 @@ World's Hardest LLM Benchmark!
 ### Install FastChat
 Install FastChat to enable model/api answer generation and evaluation. Everything after this point will require FastChat to run.
 ```console
-pip install "fschat[model_worker,webui]"
+pip install "fschat[model_worker,webui,llm_judge]"
 ```
 For more regarding FastChat, please check out [github.com/lm-sys/FastChat](https://github.com/lm-sys/FastChat).
 
 ### Evaluate models using arena-bench-v1:
-To generate model answers using FastChat. For more about `gen_api_answer`, please refer to FastChat.
+To generate model answers, we use the `gen_api_answer` and `gen_model_answer` from FastChat. For more about them, please refer to FastChat.
 Specify the number of concurrent api calls using argument `--parallel` to distribute api calls across different parallel workers.
 ```console
 python -m fastchat.llm_judge.gen_api_answer \
       --bench-name arena-bench-v1 \
       --model [model name] \
       --parallel [number of concurrent api calls]
+```
+```console
+python -m fastchat.llm_judge.gen_model_answer \
+      --bench-name arena-bench-v1 \
+      --model-path [model-path] \
+      --model-id [model-id]
 ```
 We have prepared reference answers, which generated using GPT-4. To generate GPT-4 judgment on model answers run `judge.py`.
 ```console
