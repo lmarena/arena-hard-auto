@@ -1,0 +1,6 @@
+tiktoken
+openai
+numpy
+pandas
+shortuuid
+tqdm
