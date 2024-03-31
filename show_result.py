@@ -80,10 +80,13 @@ if __name__ == "__main__":
         scores.append(score)
 
         length = 0
-        for id, row in model_answers[model].items():
-            turn = row["choices"][0]["turns"][0]
-            length += turn["token_len"]
-        length /= len(model_answers[model])
+        if model in model_answers:
+            for id, row in model_answers[model].items():
+                turn = row["choices"][0]["turns"][0]
+                length += turn["token_len"]
+            length /= len(model_answers[model])
+        else:
+            print(f"Cannot find {model} in model_answer directory.")
         lengths.append(int(length))
         
     leaderboard = pd.DataFrame()
