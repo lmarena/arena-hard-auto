@@ -68,6 +68,7 @@ Run the command to generate answers:
 ```console
 python gen_answer.py
 ```
+Caching feature is implemented. The code will skip generating an answer when there is already an existing answer/judgment to the same prompt. 
 
 ### Step 3. Generate Judgments
 
@@ -84,6 +85,7 @@ Run the command to generate judgments:
 ```console
 python gen_judgment.py
 ```
+Judgment caching is also implemented. It will skip generating judgments that has already been generated or lacks one of the model answers.  
 
 ### Step 4. Show result
 Output model win rates.  Optionally, use `--full-stats` for detailed results.
