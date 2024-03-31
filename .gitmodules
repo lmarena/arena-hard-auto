@@ -1,3 +1,0 @@
-[submodule "arena-hard-benchmark"]
-	path = arena-hard-benchmark
-	url = git@hf.co:datasets/lmsys/arena-hard-benchmark
