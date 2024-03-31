@@ -19,7 +19,6 @@ We pre-generate many popular models answer and judgment. You can review them by:
 
 gpt-4-0125-preview             | win-rate: 77.74 | average #tokens: 618
 claude-3-opus-20240229         | win-rate: 60.36 | average #tokens: 539
-gemini-1.5-pro                 | win-rate: 53.59 | average #tokens: 475
 claude-3-sonnet-20240229       | win-rate: 47.24 | average #tokens: 553
 claude-3-haiku-20240307        | win-rate: 41.47 | average #tokens: 504
 gpt-4-0613                     | win-rate: 37.9  | average #tokens: 354
