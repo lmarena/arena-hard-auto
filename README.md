@@ -92,6 +92,10 @@ Output model win rates.  Optionally, use `--full-stats` for detailed results.
 ```console
 > python show_result.py
 ```
-
+### Step 5. Arena Hard UI
+You can review individual judgment results using our UI code.
+```console
+> python qa_broswer.py --share
+```
 
 ## Citation
