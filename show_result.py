@@ -4,6 +4,7 @@ import os
 import numpy as np
 
 import tiktoken
+import datetime
 
 from glob import glob
 from utils import load_model_answers
@@ -94,14 +95,16 @@ if __name__ == "__main__":
     leaderboard["model"] = models
     leaderboard["winrate"] = [s["rate"] for s in scores]
     leaderboard["stats"] = scores
-    leaderboard["token_len"] = lengths
+    leaderboard["avg_token"] = lengths
     leaderboard = leaderboard.sort_values(by="winrate", ascending=False)
     for i, row in leaderboard.iterrows():
         if args.full_stats:
             print(f"{row['model'][:20] : <20} | win-rate: {row['winrate'] : ^5} | vaild-score: {row['stats']['valid'] : ^3} | big-win: {row['stats']['E'] : ^2} | small-win: {row['stats']['D']} | tie: {row['stats']['C'] : ^2} | big-loss: {row['stats']['A'] : ^2} | small-loss: {row['stats']['B']}")
         else:
-            print(f"{row['model'] : <30} | win-rate: {row['winrate'] : ^5} | average #tokens: {row['token_len']}")
-        # print(f"[{row['model']}, {row['scores']}: {row['token_len']}]")
+            print(f"{row['model'] : <30} | win-rate: {row['winrate'] : ^5} | average #tokens: {row['avg_token']}")
+        # print(f"[{row['model']}, {row['scores']}: {row['avg_token']}]")
 
     if args.output:
-        leaderboard.to_json(f"arena_hard_leaderboard.json", orient="records", indent=4)
+        cur_date = datetime.datetime.now()
+        date_str = cur_date.strftime("%Y%m%d")
+        leaderboard.to_json(f"arena_hard_leaderboard_{date_str}.json", orient="records", indent=4)
