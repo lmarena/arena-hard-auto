@@ -29,7 +29,7 @@ category_selector_map = defaultdict(list)
 
 def display_question(category_selector, request: gr.Request):
     choices = category_selector_map['arena-hard-v0.1']
-    return gr.Dropdown.update(
+    return gr.Dropdown(
         value=choices[0],
         choices=choices,
     )
@@ -334,7 +334,7 @@ block_css = """
 
 
 def load_demo():
-    dropdown_update = gr.Dropdown.update(value=list(category_selector_map.keys())[0])
+    dropdown_update = gr.Dropdown(value=list(category_selector_map.keys())[0])
     return dropdown_update, dropdown_update
 
 
@@ -509,6 +509,6 @@ if __name__ == "__main__":
         baseline_model = configs["baseline_model"]
 
     demo = build_demo()
-    demo.queue(concurrency_count=10, status_update_rate=10, api_open=False).launch(
+    demo.queue(status_update_rate=10, api_open=False).launch(
         server_name=args.host, server_port=args.port, share=args.share, max_threads=200
     )
