@@ -60,6 +60,7 @@ if __name__ == "__main__":
     parser.add_argument("--judge-name", type=str, default="gpt-4-1106-preview")
     parser.add_argument("--full-stats", action="store_true")
     parser.add_argument("--weight", type=int, default=3)
+    parser.add_argument("--output", action="store_true")
     args = parser.parse_args()
     print(args)
 
@@ -101,3 +102,6 @@ if __name__ == "__main__":
         else:
             print(f"{row['model'] : <30} | win-rate: {row['winrate'] : ^5} | average #tokens: {row['token_len']}")
         # print(f"[{row['model']}, {row['scores']}: {row['token_len']}]")
+
+    if args.output:
+        leaderboard.to_json(f"arena_hard_leaderboard.json", orient="records", indent=4)
