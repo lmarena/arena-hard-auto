@@ -59,6 +59,7 @@ def judgment(**args):
     output = {
         "question_id":question["question_id"],
         "model":answer["model_id"],
+        "judge": model,
         "games":[]
         }
 
