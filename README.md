@@ -13,7 +13,7 @@ pip install -r requirements-optional.txt  # Optional dependencies (e.g., anthrop
 ```
 
 ## Review pre-generated results:
-We have pre-generated many popular models answers and judgments with an online demo. You can browse them [here](https://huggingface.co/spaces/lmsys/arena-hard-browser) or download by
+We have pre-generated many popular models answers and judgments. You can browse them with an online [demo](https://huggingface.co/spaces/lmsys/arena-hard-browser) or download them by
 ```console
 > git clone https://huggingface.co/spaces/lmsys/arena-hard-browser
 // copy answers/judgments to the data directory
