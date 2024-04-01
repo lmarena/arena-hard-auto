@@ -29,7 +29,7 @@ category_selector_map = defaultdict(list)
 
 def display_question(category_selector, request: gr.Request):
     choices = category_selector_map['arena-hard-v0.1']
-    return gr.Dropdown.update(
+    return gr.Dropdown(
         value=choices[0],
         choices=choices,
     )
@@ -334,7 +334,7 @@ block_css = """
 
 
 def load_demo():
-    dropdown_update = gr.Dropdown.update(value=list(category_selector_map.keys())[0])
+    dropdown_update = gr.Dropdown(value=list(category_selector_map.keys())[0])
     return dropdown_update, dropdown_update
 
 
