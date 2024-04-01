@@ -93,11 +93,11 @@ if __name__ == "__main__":
     leaderboard["models"] = models
     leaderboard["scores"] = [s["rate"] for s in scores]
     leaderboard["stats"] = scores
-    leaderboard["length"] = lengths
+    leaderboard["token_len"] = lengths
     leaderboard = leaderboard.sort_values(by="scores", ascending=False)
     for i, row in leaderboard.iterrows():
         if args.full_stats:
             print(f"{row['models'][:20] : <20} | win-rate: {row['scores'] : ^5} | vaild-score: {row['stats']['valid'] : ^3} | big-win: {row['stats']['E'] : ^2} | small-win: {row['stats']['D']} | tie: {row['stats']['C'] : ^2} | big-loss: {row['stats']['A'] : ^2} | small-loss: {row['stats']['B']}")
         else:
-            print(f"{row['models'] : <30} | win-rate: {row['scores'] : ^5} | average #tokens: {row['length']}")
-        # print(f"[{row['models']}, {row['scores']}: {row['length']}]")
+            print(f"{row['models'] : <30} | win-rate: {row['scores'] : ^5} | average #tokens: {row['token_len']}")
+        # print(f"[{row['models']}, {row['scores']}: {row['token_len']}]")
