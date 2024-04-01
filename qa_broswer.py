@@ -318,13 +318,16 @@ def build_single_answer_browser_tab():
 
 block_css = """
 #user_question_1 {
-    background-color: #0B0F19;
+    background-color: #DEEBF7;
 }
 #user_question_2 {
-    background-color: #0B0F19;
+    background-color: #E2F0D9;
+}
+#reference {
+    background-color: #FFF2CC;
 }
 #model_explanation {
-    background-color: #0B0F19;
+    background-color: #FBE5D6;
 }
 """
 
