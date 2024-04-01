@@ -509,6 +509,6 @@ if __name__ == "__main__":
         baseline_model = configs["baseline_model"]
 
     demo = build_demo()
-    demo.queue(concurrency_count=10, status_update_rate=10, api_open=False).launch(
+    demo.queue(status_update_rate=10, api_open=False).launch(
         server_name=args.host, server_port=args.port, share=args.share, max_threads=200
     )
