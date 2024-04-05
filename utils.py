@@ -156,6 +156,9 @@ def chat_completion_openai_azure(model, messages, temperature, max_tokens, api_d
         except openai.RateLimitError as e:
             print(type(e), e)
             time.sleep(API_RETRY_SLEEP)
+        except openai.BadRequestError as e:
+            print(type(e), e)
+            break
         except KeyError:
             print(type(e), e)
             break
@@ -196,48 +199,29 @@ def chat_completion_anthropic(model, messages, temperature, max_tokens, api_dict
     return output
 
 
-# def chat_completion_anthropic(model, conv, temperature, max_tokens, api_dict=None):
-#     if api_dict is not None and "api_key" in api_dict:
-#         api_key = api_dict["api_key"]
-#     else:
-#         api_key = os.environ["ANTHROPIC_API_KEY"]
-
-#     output = API_ERROR_OUTPUT
-#     for _ in range(API_MAX_RETRY):
-#         try:
-#             c = anthropic.Anthropic(api_key=api_key)
-#             prompt = conv.get_prompt()
-#             response = c.completions.create(
-#                 model=model,
-#                 prompt=prompt,
-#                 stop_sequences=[anthropic.HUMAN_PROMPT],
-#                 max_tokens_to_sample=max_tokens,
-#                 temperature=temperature,
-#             )
-#             output = response.completion
-#             break
-#         except anthropic.APIError as e:
-#             print(type(e), e)
-#             time.sleep(API_RETRY_SLEEP)
-#     return output.strip()
-
-
 def chat_completion_mistral(model, messages, temperature, max_tokens):
     from mistralai.client import MistralClient
     from mistralai.models.chat_completion import ChatMessage
+    from mistralai.exceptions import MistralException
 
     api_key = os.environ["MISTRAL_API_KEY"]
     client = MistralClient(api_key=api_key)
 
     prompt = [ChatMessage(role="user", content=messages)]
-
-    chat_response = client.chat(
-        model=model,
-        messages=prompt,
-        temperature=temperature,
-        max_tokens=max_tokens,
-    )
-    output = chat_response.choices[0].message.content
+    
+    output = API_ERROR_OUTPUT
+    for _ in range(API_MAX_RETRY):
+        try:
+            chat_response = client.chat(
+                model=model,
+                messages=prompt,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+            output = chat_response.choices[0].message.content
+        except MistralException as e:
+            print(type(e), e)
+            break
 
     return output
 
@@ -285,6 +269,9 @@ def chat_completion_gemini(model, messages, temperature, max_tokens):
             
             convo.send_message(messages)
             output = convo.last.text
+            break
+        except genai.types.generation_types.StopCandidateException as e:
+            print(type(e), e)
             break
         except Exception as e:
             print(type(e), e)

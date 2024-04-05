@@ -55,12 +55,12 @@ def get_answer(
                                                    max_tokens=max_tokens)
             elif api_type == "mistral":
                 output = chat_completion_mistral(model=endpoint_info["model_name"],
-                                                 messages=question["turns"][j],
+                                                 messages=question["turns"][j]["content"],
                                                  temperature=temperature,
                                                  max_tokens=max_tokens)
             elif api_type == "gemini":
                 output = chat_completion_gemini(model=endpoint_info["model_name"],
-                                                messages=question["turns"][j],
+                                                messages=question["turns"][j]["content"],
                                                 temperature=temperature,
                                                 max_tokens=max_tokens)
             elif api_type == "azure":
@@ -71,7 +71,7 @@ def get_answer(
                                                       api_dict=api_dict)
             elif api_type == "cohere":
                 output = chat_completion_cohere(model=endpoint_info["model_name"],
-                                                messages=question["turns"][j],
+                                                messages=question["turns"][j]["content"],
                                                 temperature=temperature,
                                                 max_tokens=max_tokens)
             else:
@@ -133,7 +133,7 @@ if __name__ == "__main__":
 
         # We want to maximizes the number of tokens generate per answer: max_tokens = specified token # - input tokens #
         if "tokenizer" in endpoint_info:
-            question_list = [question["turns"][0] for question in questions]
+            question_list = [question["turns"][0]["content"] for question in questions]
             if model in OPENAI_MODEL_LIST:
                 tokenizer = tiktoken.encoding_for_model(endpoint_info["model_name"])
                 tokens = [tokenizer.encode(prompt) for prompt in question_list]
