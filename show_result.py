@@ -71,9 +71,15 @@ if __name__ == "__main__":
     model_answers = load_model_answers(answer_dir)
     encoding = tiktoken.encoding_for_model('gpt-3.5-turbo')
 
-    models = []
-    scores = []
-    lengths = []
+    length = 0
+    for _, row in model_answers["gpt-4-0314"].items():
+        turn = row["choices"][0]["turns"][0]
+        length += turn["token_len"]
+    length /= len(model_answers["gpt-4-0314"])
+
+    models = ["gpt-4-0314"]
+    scores = [{"rate":50, "valid":len(model_answers["gpt-4-0314"]) * 2, "A":"N/A", "B":"N/A", "C":"N/A", "D":"N/A", "E":"N/A"}]
+    lengths = [int(length)]
     for judgment_file in glob(os.path.join("data", args.bench_name, f"model_judgment/{args.judge_name}", "*.jsonl")):
         df = pd.read_json(judgment_file, lines=True)
         assert len(df["model"].unique()) == 1
@@ -99,10 +105,10 @@ if __name__ == "__main__":
     leaderboard = leaderboard.sort_values(by="winrate", ascending=False)
     for i, row in leaderboard.iterrows():
         if args.full_stats:
-            print(f"{row['model'][:20] : <20} | win-rate: {row['winrate'] : ^5} | vaild-score: {row['stats']['valid'] : ^3} | big-win: {row['stats']['E'] : ^2} | small-win: {row['stats']['D']} | tie: {row['stats']['C'] : ^2} | big-loss: {row['stats']['A'] : ^2} | small-loss: {row['stats']['B']}")
+            print(f"{row['model'][:20] : <20} | win-rate: {row['winrate'] : ^5} | vaild-score: {row['stats']['valid'] : ^5} | big-win: {row['stats']['E'] : ^3} | small-win: {row['stats']['D'] : ^3} | tie: {row['stats']['C'] : ^3} | big-loss: {row['stats']['A'] : ^3} | small-loss: {row['stats']['B']}")
         else:
             print(f"{row['model'] : <30} | win-rate: {row['winrate'] : ^5} | average #tokens: {row['avg_tokens']}")
-        # print(f"[{row['model']}, {row['scores']}: {row['avg_tokens']}]")
+        # print(f"[\"model\":\"{row['model']}\", \"score\":{row['winrate']}, \"length\":{row['avg_tokens']}]")
 
     if args.output:
         cur_date = datetime.datetime.now()
