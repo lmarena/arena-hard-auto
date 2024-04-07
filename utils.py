@@ -106,6 +106,7 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         try:
+            # print(messages)
             completion = client.chat.completions.create(
                 model=model,
                 messages=messages,
@@ -123,7 +124,7 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
         except KeyError:
             print(type(e), e)
             break
-
+    
     return output
 
 
@@ -182,6 +183,7 @@ def chat_completion_anthropic(model, messages, temperature, max_tokens, api_dict
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         try:
+            print(sys_msg)
             c = anthropic.Anthropic(api_key=api_key)
             response = c.messages.create(
                 model=model,
@@ -284,18 +286,39 @@ def chat_completion_cohere(model, messages, temperature, max_tokens):
     import cohere
 
     co = cohere.Client(os.environ["COHERE_API_KEY"])
+    assert len(messages) > 0
 
-    try:
-        response = co.chat(
-            message=messages,
-            model=model,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        )
-        output = response.text
-    except cohere.core.api_error.ApiError as e:
-        print(type(e), e)
-        raise
+    template_map = {"system":"SYSTEM",
+                    "assistant":"CHATBOT",
+                    "user":"USER"}
+
+    assert messages[-1]["role"] == "user"
+    prompt = messages[-1]["content"]
+
+    if len(messages) > 1:
+        history = []
+        for message in messages[:-1]:
+            history.append({"role":template_map[message["role"]], "message":template_map["content"]})
+    else:
+        history = None
+
+    output = API_ERROR_OUTPUT
+    for _ in range(API_MAX_RETRY):
+        try:
+            response = co.chat(
+                message=prompt,
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                chat_history=history,
+            )
+            output = response.text
+        except cohere.core.api_error.ApiError as e:
+            print(type(e), e)
+            raise
+        except Exception as e:
+            print(type(e), e)
+            break
     
     return output
 
