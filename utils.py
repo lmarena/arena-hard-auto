@@ -209,18 +209,19 @@ def chat_completion_mistral(model, messages, temperature, max_tokens):
     api_key = os.environ["MISTRAL_API_KEY"]
     client = MistralClient(api_key=api_key)
 
-    prompt = [ChatMessage(role="user", content=messages)]
+    prompts = [ChatMessage(role=message["role"], content=message["content"]) for message in messages]
     
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         try:
             chat_response = client.chat(
                 model=model,
-                messages=prompt,
+                messages=prompts,
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
             output = chat_response.choices[0].message.content
+            break
         except MistralException as e:
             print(type(e), e)
             break
@@ -313,6 +314,7 @@ def chat_completion_cohere(model, messages, temperature, max_tokens):
                 chat_history=history,
             )
             output = response.text
+            break
         except cohere.core.api_error.ApiError as e:
             print(type(e), e)
             raise
