@@ -1,8 +1,8 @@
 # Arena-Hard
+**Currently still under revisions. Blog will be released soon.**
+Arena-Hard is an evaluation tool for instruction-tuned LLMs. It contains 500 challenging user queries. We prompt GPT-4-Turbo as judge to compare the models' responses against a baseline model (default: GPT-4-0314). 
 
-Arena-Hard is an evaluation tool for instruction-tuned LLMs. It contains 500 challenging user queries. We prompt GPT-4-Turbo as judge to compare the models' responses against a baseline model (default: GPT-4-0314). **Currently still under revisions.**
-
-Check out our blog post for more details. **Will be released soon.**
+Check out our blog post for more details. 
 
 ## Install Dependencies
 ```
