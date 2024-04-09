@@ -9,21 +9,19 @@ import datetime
 from glob import glob
 from utils import load_model_answers
 
-label_map = {"A":"A>>B", "B":"A>B", "C":"A=B", "D":"B>A", "E":"B>>A"}
-win_map = {"A":"L", "B":"L", "C":"T", "D":"W", "E":"W"}
-win_weight = {"A":3, "B":1, "C":1, "D":1, "E":3}
-
-reverse_map = {"A":"E", "B":"D", "C":"C", "D":"B", "E":"A"}
-
-new_grading = {"W": 100, "T":50, "L":0}
-old_grading = {"A":-3, "B":-1, "C":0, "D":1, "E":3}
-
 def evaluate(df):
+    label_map = {"A":"A>>B", "B":"A>B", "C":"A=B", "D":"B>A", "E":"B>>A"}
+    win_map = {"A":"L", "B":"L", "C":"T", "D":"W", "E":"W"}
+    win_weight = {"A":3, "B":1, "C":1, "D":1, "E":3}
+
+    reverse_map = {"A":"E", "B":"D", "C":"C", "D":"B", "E":"A"}
+    grade = {"W": 100, "T":50, "L":0}
+
     scores = {"W":0, "L":0, "T":0}
     stats = {}
     stats["valid"] = 0
 
-    for label in old_grading.keys():
+    for label in label_map.keys():
         stats[label] = 0
 
     for _, row in df.iterrows():
@@ -48,8 +46,8 @@ def evaluate(df):
                     break
 
     stats["rate"] = 0
-    for label in new_grading.keys():
-        stats["rate"] += scores[label] * new_grading[label]
+    for label in grade.keys():
+        stats["rate"] += scores[label] * grade[label]
     stats["rate"] = np.round(stats["rate"] / sum(scores.values()), decimals=2)
 
     return stats, df.iloc[0]["model"]
