@@ -299,7 +299,7 @@ def chat_completion_cohere(model, messages, temperature, max_tokens):
     if len(messages) > 1:
         history = []
         for message in messages[:-1]:
-            history.append({"role":template_map[message["role"]], "message":template_map["content"]})
+            history.append({"role":template_map[message["role"]], "message":message["content"]})
     else:
         history = None
 
