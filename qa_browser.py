@@ -8,7 +8,7 @@ import yaml
 
 import gradio as gr
 
-from fastchat.llm_judge.common import (
+from utils import (
     load_questions,
     load_model_answers,
 )
@@ -29,7 +29,7 @@ category_selector_map = defaultdict(list)
 
 def display_question(category_selector, request: gr.Request):
     choices = category_selector_map['arena-hard-v0.1']
-    return gr.Dropdown(
+    return gr.Dropdown.update(
         value=choices[0],
         choices=choices,
     )
@@ -60,24 +60,6 @@ def display_pairwise_answer(
     explanations = get_pairwise_judge_explanation(gamekey, judgment_dict)
     chat_mds_2 = chat_mds[:1] + chat_mds[:-3:-1]
     return chat_mds + [explanations[0]] + chat_mds_2 + [explanations[1]]
-
-
-def display_single_answer(question_selector, model_selector1, request: gr.Request):
-    q = question_selector_map[question_selector]
-    qid = q["question_id"]
-
-    ans1 = model_answers[model_selector1][qid]
-    
-    chat_mds = single_to_gradio_chat_mds(q, ans1)
-    gamekey = (qid, model_selector1)
-
-    judgment_dict = model_judgments_math_single[("gpt-4", "single-math-v1")]
-
-    explanation = "##### Model Judgment (first turn)\n" + get_single_judge_explanation(
-        gamekey, judgment_dict
-    )
-
-    return chat_mds + [explanation]
 
 
 newline_pattern1 = re.compile("\n\n(\d+\. )")
@@ -113,23 +95,6 @@ def pairwise_to_gradio_chat_mds(question, ans_a, ans_b, ans_base=None, turn=None
     return mds
 
 
-def single_to_gradio_chat_mds(question, ans, turn=None):
-    end = len(question["turns"]) if turn is None else turn + 1
-
-    mds = ["" for i in range(2)]
-    for i in range(end):
-        base = i * 2
-        if i == 0:
-            mds[base + 0] = "##### User\n" + question["turns"][i]["content"]
-        else:
-            mds[base + 0] = "##### User's follow-up question \n" + question["turns"][i]["content"]
-        mds[base + 1] = "##### Assistant A\n" + post_process_answer(
-            ans["choices"][0]["turns"][i]["content"].strip()
-        )
-
-    return mds
-
-
 def build_question_selector_map():
     global question_selector_map, category_selector_map
 
@@ -155,11 +120,11 @@ def build_pairwise_browser_tab():
     with gr.Row():
         with gr.Column(scale=1, min_width=200):
             category_selector = gr.Dropdown(
-                choices=category_selector_choices, label="Category", container=False
+                choices=category_selector_choices, value="aren-hard-v0.1", label="Category", container=False
             )
         with gr.Column(scale=100):
             question_selector = gr.Dropdown(
-                choices=question_selector_choices, label="Question", container=False
+                choices=question_selector_choices, label="Question", container=True
             )
 
     model_selectors = [None] * num_sides
@@ -176,7 +141,7 @@ def build_pairwise_browser_tab():
                 else:
                     model_selectors[i] = gr.Dropdown(
                         choices=models,
-                        value="gpt-3.5-turbo-0613",
+                        value="gpt-3.5-turbo-0125",
                         label=f"Model {side_names[i]}",
                         container=False,
                     )
@@ -196,10 +161,6 @@ def build_pairwise_browser_tab():
                         if j == 0:
                             with gr.Column(scale=1, min_width=8):
                                 gr.Markdown()
-
-            # if baseline_model:
-            #     baseline = gr.Markdown()
-            #     chat_mds.append(baseline)
             
             gr.Markdown("## Model Judgment Comparison \n")
 
@@ -220,10 +181,6 @@ def build_pairwise_browser_tab():
                         if j == 0:
                             with gr.Column(scale=1, min_width=8):
                                 gr.Markdown()
-
-            # if baseline_model:
-            #     baseline = gr.Markdown()
-            #     chat_mds.append(baseline)
             
             gr.Markdown("## Model Judgment Comparison \n")
 
@@ -247,73 +204,7 @@ def build_pairwise_browser_tab():
         chat_mds,
     )
 
-    return (category_selector,)
-
-
-def build_single_answer_browser_tab():
-    global question_selector_map, category_selector_map
-
-    models = list(model_answers.keys())
-    num_sides = 1
-    num_turns = 1
-    side_names = ["A"]
-
-    question_selector_choices = list(question_selector_map.keys())
-    category_selector_choices = list(category_selector_map.keys())
-
-    # Selectors
-    with gr.Row():
-        with gr.Column(scale=1, min_width=200):
-            category_selector = gr.Dropdown(
-                choices=category_selector_choices, value='arena-hard-v0.1', label="Category", container=False
-            )
-        with gr.Column(scale=100):
-            question_selector = gr.Dropdown(
-                choices=question_selector_choices, label="Question", container=False
-            )
-
-    model_selectors = [None] * num_sides
-    with gr.Row():
-        for i in range(num_sides):
-            with gr.Column():
-                model_selectors[i] = gr.Dropdown(
-                    choices=models,
-                    value=models[i] if len(models) > i else "",
-                    label=f"Model {side_names[i]}",
-                    container=False,
-                )
-
-    # Conversation
-    chat_mds = []
-    for i in range(num_turns):
-        chat_mds.append(gr.Markdown(elem_id=f"user_question_{i+1}"))
-        with gr.Row():
-            for j in range(num_sides):
-                with gr.Column(scale=100):
-                    chat_mds.append(gr.Markdown())
-
-                if j == 0:
-                    with gr.Column(scale=1, min_width=8):
-                        gr.Markdown()
-
-    model_explanation = gr.Markdown(elem_id="model_explanation")
-
-    # Callbacks
-    category_selector.change(display_question, [category_selector], [question_selector])
-    question_selector.change(
-        display_single_answer,
-        [question_selector] + model_selectors,
-        chat_mds + [model_explanation],
-    )
-
-    for i in range(num_sides):
-        model_selectors[i].change(
-            display_single_answer,
-            [question_selector] + model_selectors,
-            chat_mds + [model_explanation],
-        )
-
-    return (category_selector,)
+    return category_selector
 
 
 block_css = """
@@ -332,9 +223,8 @@ block_css = """
 """
 
 
-
 def load_demo():
-    dropdown_update = gr.Dropdown(value=list(category_selector_map.keys())[0])
+    dropdown_update = gr.Dropdown.update(value=list(category_selector_map.keys())[0])
     return dropdown_update, dropdown_update
 
 
@@ -352,36 +242,10 @@ def build_demo():
 The code to generate answers and judgments is at [arena-hard](https://github.com/lm-sys/arena-hard).
 """
         )
-        with gr.Tab("Pairwise Comparison"):
-            (category_selector2,) = build_pairwise_browser_tab()
-        # with gr.Tab("Single Answer Grading"):
-        #     (category_selector,) = build_single_answer_browser_tab()
-        demo.load(load_demo, [], [category_selector2])
+        category_selector = build_pairwise_browser_tab()
+        demo.load(load_demo, [], category_selector)
 
     return demo
-
-
-# def load_pairwise_model_judgments(dir: str):
-#     """Load model judgments.
-
-#     The return value is a dict of type:
-#     Dict[judge: Tuple -> Dict[game_key: tuple -> game_result: dict]
-#     """
-#     filenames = glob.glob(os.path.join(dir, "*.jsonl"))
-#     filenames.sort()
-
-#     judge_dict = {}
-#     for filename in filenames:
-#         for line in open(filename):
-#             obj = json.loads(line)
-#             qid, model = obj["question_id"], obj["model"]
-
-#             if qid not in judge_dict:
-#                 judge_dict[qid] = {}
-
-#             judge_dict[qid][model] = obj["judgment"]
-
-#     return judge_dict
 
 
 def load_pairwise_model_judgments(dir: str):
@@ -442,8 +306,6 @@ def get_pairwise_judge_explanation(gamekey, judgment_dict):
         
         g1_judgment = judgment_dict[model_2]
 
-        # g1_judgment = g1_judgment[:-6] + f"<mark><span style='color:black'>{g1_judgment[-6:]}</span></mark>"
-        # g2_judgment = g2_judgment[:-6] + f"<mark><span style='color:black'>{g2_judgment[-6:]}</span></mark>"
         return [f"**<mark><span style='color:black'>Game 1 Judgment</span></mark>**: {g1_judgment[0]}\n\n", f"**<mark><span style='color:black'>Game 2 Judgment</span></mark>**: {g1_judgment[1]}"]
     except KeyError:
         return "N/A"
@@ -496,7 +358,7 @@ if __name__ == "__main__":
         os.path.join("data", configs["bench_name"], "model_judgment", configs["judge_model"])
     )
     # Load questions
-    questions = load_questions(question_file, None, None)
+    questions = load_questions(question_file)
 
     # Load answers
     model_answers = load_model_answers(answer_dir)
@@ -509,6 +371,6 @@ if __name__ == "__main__":
         baseline_model = configs["baseline_model"]
 
     demo = build_demo()
-    demo.queue(status_update_rate=10, api_open=False).launch(
+    demo.launch(
         server_name=args.host, server_port=args.port, share=args.share, max_threads=200
     )
