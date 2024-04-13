@@ -12,7 +12,7 @@ pip install -r requirements.txt
 pip install -r requirements-optional.txt  # Optional dependencies (e.g., anthropic sdk)
 ```
 
-## Review pre-generated results:
+## Download dataset
 We have pre-generated many popular models answers and judgments. You can browse them with an online [demo](https://huggingface.co/spaces/lmsys/arena-hard-browser) or download them by
 ```console
 > git clone https://huggingface.co/spaces/lmsys/arena-hard-browser
