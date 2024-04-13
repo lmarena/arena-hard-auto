@@ -4,3 +4,5 @@ numpy
 pandas
 shortuuid
 tqdm
+gradio==3.40.0
+httpx==0.25.2

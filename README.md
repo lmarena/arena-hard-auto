@@ -1,8 +1,8 @@
 # Arena-Hard
+**Currently still under revisions. Blog and technical report will be released soon.**
+Arena-Hard is an evaluation tool for instruction-tuned LLMs. It contains 500 challenging user queries. We prompt GPT-4-Turbo as judge to compare the models' responses against a baseline model (default: GPT-4-0314). 
 
-Arena-Hard is an evaluation tool for instruction-tuned LLMs. It contains 500 challenging user queries. We prompt GPT-4-Turbo as judge to compare the models' responses against a baseline model (default: GPT-4-0314).
-
-Check out our blog post for more details.
+Check out our blog post for more details. 
 
 ## Install Dependencies
 ```
@@ -12,12 +12,12 @@ pip install -r requirements.txt
 pip install -r requirements-optional.txt  # Optional dependencies (e.g., anthropic sdk)
 ```
 
-## Review pre-generated results:
+## Download dataset
 We have pre-generated many popular models answers and judgments. You can browse them with an online [demo](https://huggingface.co/spaces/lmsys/arena-hard-browser) or download them by
 ```console
 > git clone https://huggingface.co/spaces/lmsys/arena-hard-browser
 // copy answers/judgments to the data directory
-> cp -r arena-hard-browser/data/ . 
+> cp -r arena-hard-browser/data . 
 ```
 Then run
 ```console
