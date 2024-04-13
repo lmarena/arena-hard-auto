@@ -17,7 +17,7 @@ We have pre-generated many popular models answers and judgments. You can browse 
 ```console
 > git clone https://huggingface.co/spaces/lmsys/arena-hard-browser
 // copy answers/judgments to the data directory
-> cp -r arena-hard-browser/data/ . 
+> cp -r arena-hard-browser/data . 
 ```
 Then run
 ```console
