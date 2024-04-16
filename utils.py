@@ -183,7 +183,7 @@ def chat_completion_anthropic(model, messages, temperature, max_tokens, api_dict
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         try:
-            print(sys_msg)
+            # print(sys_msg)
             c = anthropic.Anthropic(api_key=api_key)
             response = c.messages.create(
                 model=model,
