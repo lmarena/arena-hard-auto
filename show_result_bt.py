@@ -12,6 +12,7 @@ from glob import glob
 from tqdm import tqdm
 
 from sklearn.linear_model import LogisticRegression
+from collections import defaultdict
 from utils import load_model_answers
 
 def compute_mle_elo(df, SCALE=400, BASE=10, INIT_RATING=1000):
@@ -80,6 +81,32 @@ def visualize_bootstrap_scores(df, title):
     fig.update_layout(xaxis_title="Model", yaxis_title="Rating",
                       height=600)
     return fig
+
+
+def predict_win_rate(elo_ratings, SCALE=400, BASE=10, INIT_RATING=1000):
+    names = sorted(list(elo_ratings.keys()))
+    wins = defaultdict(lambda: defaultdict(lambda: 0))
+    for a in names:
+        for b in names:
+            ea = 1 / (1 + BASE ** ((elo_ratings[b] - elo_ratings[a]) / SCALE))
+            wins[a][b] = ea
+            wins[b][a] = 1 - ea
+
+    data = {
+        a: [wins[a][b] if a != b else np.NAN for b in names]
+        for a in names
+    }
+
+    df = pd.DataFrame(data, index=names)
+    df.index.name = "model_a"
+    df.columns.name = "model_b"
+    return df.T
+
+
+def get_win_rate_column(df, column, baseline="gpt-4-0314"):
+    to_dict = df[["model", column]].set_index("model").to_dict()[column]
+    win_rate_table = predict_win_rate(to_dict)
+    return win_rate_table[baseline].fillna(0.5).apply(lambda x: round(x * 100, 2))
 
 
 def get_battles_from_judgment(judge_name, first_game_only=False, WEIGHT=3):
@@ -153,9 +180,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--bench-name", type=str, default="arena-hard-v0.1")
     parser.add_argument("--judge-name", type=str, default="gpt-4-1106-preview")
+    parser.add_argument("--baseline", type=str, default="gpt-4-0314")
     parser.add_argument("--load-battles", action="store_true")
     parser.add_argument("--load-bootstrap", action="store_true")
-    parser.add_argument("--full-stats", action="store_true")
+    parser.add_argument("--show-elo", action="store_true")
     parser.add_argument("--weight", type=int, default=3)
     parser.add_argument("--num-rounds", type=int, default=100)
     parser.add_argument("--output", action="store_true")
@@ -191,9 +219,9 @@ if __name__ == "__main__":
         assert model in bootstrap_elo_lu.columns
 
         stats.at[i, "model"] = model
-        stats.at[i, "score"] = int(bootstrap_online_elo[model])
-        stats.at[i, "lower"] = int(np.percentile(bootstrap_elo_lu[model], 2.5))
-        stats.at[i, "upper"] = int(np.percentile(bootstrap_elo_lu[model], 97.5))
+        stats.at[i, "score"] = bootstrap_online_elo[model]
+        stats.at[i, "lower"] = np.percentile(bootstrap_elo_lu[model], 2.5)
+        stats.at[i, "upper"] = np.percentile(bootstrap_elo_lu[model], 97.5)
 
         length = 0
         if model in model_answers:
@@ -205,9 +233,20 @@ if __name__ == "__main__":
         stats.at[i, "avg_tokens"] = int(length)
         stats.at[i, "results"] = bootstrap_elo_lu[model].tolist()
     
+    if not args.show_elo:
+        stats.sort_values(by="model", inplace=True)
+        stats["score"] = get_win_rate_column(stats, "score", args.baseline).tolist()
+        stats["lower"] = get_win_rate_column(stats, "lower", args.baseline).tolist()
+        stats["upper"] = get_win_rate_column(stats, "upper", args.baseline).tolist()
+        decimal = 1
+    else:
+        decimal = 0
+        stats = stats.astype({"score" : int, "lower" : int, "upper" : int})
+    
+    stats.sort_values(by="score", ascending=False, inplace=True)
     for _, row in stats.iterrows():
-        interval = str((int(row['lower']), int(row['upper'])))
-        print(f"{row['model'] : <30} | score: {int(row['score']) : ^5} | 95% CI: {interval : ^12} | average #tokens: {int(row['avg_tokens'])}")
+        interval = str((round(row['lower'] - row['score'], decimal), round(row['upper'] - row['score'], decimal)))
+        print(f"{row['model'] : <30} | score: {round(row['score'], decimal) : ^5} | 95% CI: {interval : ^12} | average #tokens: {int(row['avg_tokens'])}")
 
     if args.output:
         cur_date = datetime.datetime.now()
