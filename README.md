@@ -22,17 +22,17 @@ We have pre-generated many popular models answers and judgments. You can browse 
 Then run
 ```console
 > python show_result.py
-
-gpt-4-0125-preview             | win-rate: 77.74 | average #tokens: 618
-claude-3-opus-20240229         | win-rate: 60.36 | average #tokens: 539
-claude-3-sonnet-20240229       | win-rate: 47.24 | average #tokens: 553
-claude-3-haiku-20240307        | win-rate: 41.47 | average #tokens: 504
-gpt-4-0613                     | win-rate: 37.9  | average #tokens: 354
-mistral-large-2402             | win-rate: 37.77 | average #tokens: 399
-Qwen1.5-72B-Chat               | win-rate: 36.08 | average #tokens: 473
-mistral-medium                 | win-rate: 32.94 | average #tokens: 492
-gpt-3.5-turbo-0613             | win-rate: 25.14 | average #tokens: 403
+gpt-4-0125-preview             | score: 78.0  | 95% CI: (-1.8, 2.2)  | average #tokens: 619
+claude-3-opus-20240229         | score: 60.4  | 95% CI: (-2.6, 2.1)  | average #tokens: 541
+gpt-4-0314                     | score: 50.0  | 95% CI:  (0.0, 0.0)  | average #tokens: 423
+claude-3-sonnet-20240229       | score: 46.8  | 95% CI: (-2.7, 2.3)  | average #tokens: 552
+claude-3-haiku-20240307        | score: 41.5  | 95% CI: (-2.4, 2.5)  | average #tokens: 505
+gpt-4-0613                     | score: 37.9  | 95% CI: (-2.1, 2.2)  | average #tokens: 354
+mistral-large-2402             | score: 37.7  | 95% CI: (-2.9, 2.8)  | average #tokens: 400
+Qwen1.5-72B-Chat               | score: 36.1  | 95% CI: (-2.1, 2.4)  | average #tokens: 474
+command-r-plus                 | score: 33.1  | 95% CI: (-2.0, 1.9)  | average #tokens: 541
 ```
+Running show results will save generated battles into `data/arena_hard_battles.jsonl` and bootstrapping statistics into `data/bootstrapping_results.jsonl`. If you don't want to regenerate battles or bootstrapping statistics, simply toggle argument `--load-battles` or `--load-bootstrap`, respectively.
 
 ## Evaluate a new model on Arena-hard-v0.1:
 
