@@ -2,7 +2,7 @@
 **Currently still under revisions. Blog and technical report will be released soon.**
 Arena-Hard is an evaluation tool for instruction-tuned LLMs. It contains 500 challenging user queries. We prompt GPT-4-Turbo as judge to compare the models' responses against a baseline model (default: GPT-4-0314). 
 
-Check out our blog post for more details. 
+Check out our blog post for more details -> [Blog post preview](https://lmsys.org/blog/2024-04-19-arena-hard/).
 
 ## Install Dependencies
 ```
@@ -105,3 +105,12 @@ You can review individual judgment results using our UI code.
 ```
 
 ## Citation
+```
+@misc{arenahard2024,
+    title = {From Live Data to High-Quality Benchmarks: The Arena-Hard Pipeline},
+    url = {https://lmsys.org/blog/2024-04-19-arena-hard/},
+    author = {Tianle Li*, Wei-Lin Chiang*, Evan Frick, Lisa Dunlap, Banghua Zhu, Joseph E. Gonzalez, Ion Stoica},
+    month = {April},
+    year = {2024}
+}
+```
