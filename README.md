@@ -1,7 +1,7 @@
 # Arena-Hard
 Arena-Hard is an evaluation tool for instruction-tuned LLMs. It contains 500 challenging user queries. We prompt GPT-4-Turbo as judge to compare the models' responses against a baseline model (default: GPT-4-0314). 
 
-Check out our blog post for more details -> [Blog post link](https://lmsys.org/blog/2024-04-19-arena-hard/).
+Check out our blog post for more details about how Arena Hard v0.1 works -> [Blog post link](https://lmsys.org/blog/2024-04-19-arena-hard/).
 
 ## Install Dependencies
 ```
