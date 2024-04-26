@@ -12,7 +12,7 @@ pip install -r requirements-optional.txt  # Optional dependencies (e.g., anthrop
 ```
 
 ## Download dataset
-We have pre-generated many popular models answers and judgments. You can browse them with an online [demo](https://huggingface.co/spaces/lmsys/arena-hard-browser) or download them by
+We have pre-generated many popular models answers and judgments. You can browse them with an online [demo](https://huggingface.co/spaces/lmsys/arena-hard-browser) or download them (with [`git-lfs`](https://git-lfs.com) installed) by
 ```console
 > git clone https://huggingface.co/spaces/lmsys/arena-hard-browser
 // copy answers/judgments to the data directory
