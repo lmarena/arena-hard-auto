@@ -1,7 +1,7 @@
-# Arena-Hard
-Arena-Hard is an evaluation tool for instruction-tuned LLMs. It contains 500 challenging user queries. We prompt GPT-4-Turbo as judge to compare the models' responses against a baseline model (default: GPT-4-0314). 
+# Arena-Hard-Auto
+Arena-Hard-Auto-v0.1 is an automatic evaluation tool for instruction-tuned LLMs. It contains 500 challenging user queries. We prompt GPT-4-Turbo as judge to compare the models' responses against a baseline model (default: GPT-4-0314). Although both Arena-Hard-Auto and Chatbot Arena Category Hard employ similar pipeline to select hard prompts, Arena-Hard-Auto employs automatic judge as a cheaper and faster approximator to human preference. Notably, Arena-Hard-Auto has the highest correlation and separability to Chatbot Arena among popular open-ended LLM benchmarks (see our blog post).
 
-Check out our blog post for more details about how Arena Hard v0.1 works -> [Blog post link](https://lmsys.org/blog/2024-04-19-arena-hard/).
+Check out our blog post for more details about how Arena Hard Auto v0.1 works -> [Blog post link](https://lmsys.org/blog/2024-04-19-arena-hard/).
 
 ## Install Dependencies
 ```
@@ -33,7 +33,7 @@ command-r-plus                 | score: 33.1  | 95% CI: (-2.0, 1.9)  | average #
 ```
 Running `show_results.py` will save generated battles into `data/arena_hard_battles.jsonl` and bootstrapping statistics into `data/bootstrapping_results.jsonl`. If you don't want to regenerate battles or bootstrapping statistics, simply toggle argument `--load-battles` or `--load-bootstrap`, respectively.
 
-## Evaluate a new model on Arena-hard-v0.1:
+## Evaluate a new model on Arena-Hard-Auto v0.1:
 
 ### Step 1. Set up the endpoint config to your model
 
