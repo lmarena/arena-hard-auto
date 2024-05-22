@@ -257,7 +257,7 @@ def http_completion_gemini(model, message, temperature, max_tokens):
             json={
                 "contents": [{
                     "parts":[
-                        {"text": "Write a story about a magic backpack."}
+                        {"text": message}
                     ]
                 }],
                 "safetySettings": safety_settings,
