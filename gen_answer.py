@@ -22,7 +22,7 @@ from utils import (
     chat_completion_anthropic,
     chat_completion_openai_azure,
     chat_completion_mistral,
-    chat_completion_gemini,
+    http_completion_gemini,
     chat_completion_cohere,
     reorg_answer_file,
     OPENAI_MODEL_LIST,
@@ -62,8 +62,8 @@ def get_answer(
                                                  temperature=temperature,
                                                  max_tokens=max_tokens)
             elif api_type == "gemini":
-                output = chat_completion_gemini(model=endpoint_info["model_name"],
-                                                messages=question["turns"][j]["content"],
+                output = http_completion_gemini(model=endpoint_info["model_name"],
+                                                message=question["turns"][j]["content"],
                                                 temperature=temperature,
                                                 max_tokens=max_tokens)
             elif api_type == "azure":

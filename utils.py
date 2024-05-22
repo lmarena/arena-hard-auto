@@ -3,6 +3,7 @@ import json
 import time
 import yaml
 import random
+import requests
 
 from typing import Optional
 from glob import glob
@@ -106,12 +107,11 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         try:
-            # print(messages)
             completion = client.chat.completions.create(
                 model=model,
                 messages=messages,
                 temperature=temperature,
-                max_tokens=max_tokens
+                max_tokens=max_tokens,
                 )
             output = completion.choices[0].message.content
             break
@@ -183,7 +183,6 @@ def chat_completion_anthropic(model, messages, temperature, max_tokens, api_dict
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         try:
-            # print(sys_msg)
             c = anthropic.Anthropic(api_key=api_key)
             response = c.messages.create(
                 model=model,
@@ -229,10 +228,9 @@ def chat_completion_mistral(model, messages, temperature, max_tokens):
     return output
 
 
-def chat_completion_gemini(model, messages, temperature, max_tokens):
-    import google.generativeai as genai
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-
+def http_completion_gemini(model, message, temperature, max_tokens):
+    api_key = os.environ["GEMINI_API_KEY"]
+    
     safety_settings = [
         {
             "category": "HARM_CATEGORY_HARASSMENT",
@@ -252,35 +250,33 @@ def chat_completion_gemini(model, messages, temperature, max_tokens):
         },
     ]
 
-    # Set up the model
-    generation_config = {
-        "temperature": temperature,
-        "top_p": 1,
-        "top_k": 1,
-        "max_output_tokens": max_tokens,
-    }
-
     output = API_ERROR_OUTPUT
-    for _ in range(API_MAX_RETRY):
-        try:
-            gemini = genai.GenerativeModel(
-                model_name=model,
-                generation_config=generation_config,
-                safety_settings=safety_settings)
+    try:
+        response = requests.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
+            json={
+                "contents": [{
+                    "parts":[
+                        {"text": "Write a story about a magic backpack."}
+                    ]
+                }],
+                "safetySettings": safety_settings,
+                "generationConfig":{
+                    "temperature": temperature,
+                    "maxOutputTokens": max_tokens,
+                }
+            },
+        )
+    except Exception as e:
+        print(f"**API REQUEST ERROR** Reason: {e}.")
 
-            convo = gemini.start_chat(history=[])
-            
-            convo.send_message(messages)
-            output = convo.last.text
-            break
-        except genai.types.generation_types.StopCandidateException as e:
-            print(type(e), e)
-            break
-        except Exception as e:
-            print(type(e), e)
-            time.sleep(API_RETRY_SLEEP)
-    
+    if response.status_code != 200:
+        print(f"**API REQUEST ERROR** Reason: status code {response.status_code}.")
+
+    output = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+
     return output
+    
 
 
 def chat_completion_cohere(model, messages, temperature, max_tokens):
