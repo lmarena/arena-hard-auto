@@ -11,7 +11,6 @@ gemini-1.5-pro-api-preview     | score: 72.0  | 95% CI: (-2.1, 2.5)  | average #
 yi-large-preview               | score: 71.5  | 95% CI: (-2.4, 2.0)  | average #tokens: 720
 claude-3-opus-20240229         | score: 60.4  | 95% CI: (-2.5, 2.5)  | average #tokens: 541
 glm-4                          | score: 55.7  | 95% CI: (-2.4, 2.3)  | average #tokens: 622
-gemini-1.5-pro                 | score: 53.4  | 95% CI: (-2.8, 2.4)  | average #tokens: 478
 gpt-4-0314                     | score: 50.0  | 95% CI:  (0.0, 0.0)  | average #tokens: 423
 gemini-1.5-flash-api-preview   | score: 49.6  | 95% CI: (-2.2, 2.8)  | average #tokens: 642
 claude-3-sonnet-20240229       | score: 46.8  | 95% CI: (-2.3, 2.7)  | average #tokens: 552
