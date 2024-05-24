@@ -57,10 +57,10 @@ def judgment(**args):
     num_games = 2 if configs["pairwise"] else 1
 
     output = {
-        "question_id":question["question_id"],
-        "model":answer["model_id"],
+        "question_id": question["question_id"],
+        "model": answer["model_id"],
         "judge": model,
-        "games":[]
+        "games": []
         }
 
     for game in range(num_games):
@@ -75,9 +75,7 @@ def judgment(**args):
 
             if baseline:
                 if game % 2 == 1: # swap position
-                    temp = baseline
-                    baseline = answer
-                    answer = temp
+                    answer, baseline = baseline, answer
 
                 for i, turn in enumerate(baseline["choices"][0]["turns"]):
                     prompt_args[f"answer_{i+1}"] = turn["content"]
@@ -95,7 +93,7 @@ def judgment(**args):
             conv.append({"role": "user", "content": user_prompt})
 
         judgment = ""
-        for _ in range(2):
+        for _ in range(configs['number_of_judgment_attempts']):
             new_judgment = get_answer(
                 model,
                 conv,
@@ -118,7 +116,7 @@ def judgment(**args):
         result = {
             "user_prompt": conv[1]["content"],
             "judgment": judgment,
-            "score":score
+            "score": score
         }
         output["games"].append(result)
 

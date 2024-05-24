@@ -109,7 +109,7 @@ def get_win_rate_column(df, column, baseline="gpt-4-0314"):
     return win_rate_table[baseline].fillna(0.5).apply(lambda x: round(x * 100, 2))
 
 
-def get_battles_from_judgment(judge_name, first_game_only=False, WEIGHT=3):
+def get_battles_from_judgment(judge_name, first_game_only=False, WEIGHT=3, baseline_model="gpt-4-0314"):
     arena_hard_battles = pd.DataFrame()
     
     print("Turning judgment results into battles...")
@@ -122,7 +122,7 @@ def get_battles_from_judgment(judge_name, first_game_only=False, WEIGHT=3):
         for _, row in df.iterrows():
             # game 1
             output = {"question_id": row["question_id"],
-                    "model_a": "gpt-4-0314",
+                    "model_a": baseline_model,
                     "model_b": row["model"]}
 
             game = row["games"][0]
@@ -149,7 +149,7 @@ def get_battles_from_judgment(judge_name, first_game_only=False, WEIGHT=3):
             if not first_game_only:
                 # game 2
                 output = {"question_id": row["question_id"],
-                        "model_a": "gpt-4-0314",
+                        "model_a": baseline_model,
                         "model_b": row["model"]}
 
                 game = row["games"][1]
@@ -199,7 +199,7 @@ if __name__ == "__main__":
         assert os.path.exists("data/arena_hard_battles.jsonl")
         battles = pd.read_json("data/arena_hard_battles.jsonl", lines=True)
     else:
-        battles = get_battles_from_judgment(args.judge_name, args.first_game_only, args.weight)
+        battles = get_battles_from_judgment(args.judge_name, args.first_game_only, args.weight, args.baseline)
         
     bootstrap_online_elo = compute_mle_elo(battles)
 
