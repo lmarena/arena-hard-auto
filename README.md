@@ -8,7 +8,7 @@ Check out our blog post for more details about how Arena Hard Auto v0.1 works ->
 gpt-4-turbo-2024-04-09         | score: 82.6  | 95% CI: (-1.7, 1.9)  | average #tokens: 662
 gpt-4-0125-preview             | score: 78.0  | 95% CI: (-2.1, 2.4)  | average #tokens: 619
 gemini-1.5-pro-api-preview     | score: 72.0  | 95% CI: (-2.1, 2.5)  | average #tokens: 676
-yi-large-preview               | score: 71.5  | 95% CI: (-2.4, 2.0)  | average #tokens: 720
+yi-large                       | score: 63.7  | 95% CI: (-2.6, 2.4)  | average #tokens: 626   
 claude-3-opus-20240229         | score: 60.4  | 95% CI: (-2.5, 2.5)  | average #tokens: 541
 glm-4                          | score: 55.7  | 95% CI: (-2.4, 2.3)  | average #tokens: 622
 gpt-4-0314                     | score: 50.0  | 95% CI:  (0.0, 0.0)  | average #tokens: 423
