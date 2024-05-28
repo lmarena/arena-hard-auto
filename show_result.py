@@ -158,14 +158,14 @@ def get_battles_from_judgment(judge_name, first_game_only=False, WEIGHT=3):
                 if game["score"] == "A=B":
                     output["winner"] = "tie"
                 elif game["score"] == "A>B":
-                    output["winner"] = "model_b"
+                    output["winner"] = "model_a"
                 elif game["score"] == "A>>B":
-                    output["winner"] = "model_b"
+                    output["winner"] = "model_a"
                     weight = WEIGHT
                 elif game["score"] == "B>A":
-                    output["winner"] = "model_a"
+                    output["winner"] = "model_b"
                 elif game["score"] == "B>>A":
-                    output["winner"] = "model_a"
+                    output["winner"] = "model_b"
                     weight = WEIGHT
                 else:
                     weight = 0
