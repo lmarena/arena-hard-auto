@@ -97,7 +97,7 @@ def judgment(**args):
         judgment = ""
         for _ in range(2):
             new_judgment = get_answer(
-                model,
+                endpoint_info["model_name"],
                 conv,
                 configs["temperature"],
                 configs["max_tokens"],
