@@ -15,7 +15,8 @@ from sklearn.linear_model import LogisticRegression
 from collections import defaultdict
 from utils import load_model_answers
 
-def compute_mle_elo(df, SCALE=400, BASE=10, INIT_RATING=1000):
+
+def compute_mle_elo(df, SCALE=400, BASE=10, INIT_RATING=1000, baseline_model="gpt-4-0314"):
     models = pd.concat([df["model_a"], df["model_b"]]).unique()
     models = pd.Series(np.arange(len(models)), index=models)
 
@@ -44,9 +45,9 @@ def compute_mle_elo(df, SCALE=400, BASE=10, INIT_RATING=1000):
     elo_scores = SCALE * lr.coef_[0] + INIT_RATING
 
     # set anchor as gpt-4-0314 = 1000
-    if "gpt-4-0314" in models.index:
-        elo_scores += 1000 - elo_scores[models["gpt-4-0314"]]
-    return pd.Series(elo_scores, index = models.index).sort_values(ascending=False)
+    if baseline_model in models.index:
+        elo_scores += 1000 - elo_scores[models[baseline_model]]
+    return pd.Series(elo_scores, index=models.index).sort_values(ascending=False)
 
 
 def get_bootstrap_result(battles, func_compute_elo, num_round):
@@ -201,7 +202,7 @@ if __name__ == "__main__":
     else:
         battles = get_battles_from_judgment(args.judge_name, args.first_game_only, args.weight, args.baseline)
         
-    bootstrap_online_elo = compute_mle_elo(battles)
+    bootstrap_online_elo = compute_mle_elo(battles, baseline_model=args.baseline)
 
 
     if args.load_bootstrap:
