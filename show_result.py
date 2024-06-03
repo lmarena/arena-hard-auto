@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 
-import tiktoken
 import datetime
 import argparse
 import os
@@ -10,6 +9,7 @@ import math
 
 from glob import glob
 from tqdm import tqdm
+import inspect
 
 from sklearn.linear_model import LogisticRegression
 from collections import defaultdict
@@ -50,10 +50,13 @@ def compute_mle_elo(df, SCALE=400, BASE=10, INIT_RATING=1000, baseline_model="gp
     return pd.Series(elo_scores, index=models.index).sort_values(ascending=False)
 
 
-def get_bootstrap_result(battles, func_compute_elo, num_round):
+def get_bootstrap_result(battles, func_compute_elo, num_round, baseline_model="gpt-4-0314"):
     rows = []
-    for i in tqdm(range(num_round), desc="bootstrap"):
-        rows.append(func_compute_elo(battles.sample(frac=1.0, replace=True)))
+    kwargs = {}
+    if baseline_model in inspect.signature(func_compute_elo).parameters:
+        kwargs[baseline_model] = baseline_model
+    for _ in tqdm(range(num_round), desc="bootstrap"):
+        rows.append(func_compute_elo(battles.sample(frac=1.0, replace=True), **kwargs))
     df = pd.DataFrame(rows)
     return df[df.median().sort_values(ascending=False).index]
 
@@ -209,7 +212,7 @@ if __name__ == "__main__":
         bootstrap_elo_lu = pd.read_json("data/bootstrapping_results.jsonl", lines=True)
     else:
         np.random.seed(42)
-        bootstrap_elo_lu = get_bootstrap_result(battles, compute_mle_elo, args.num_rounds)
+        bootstrap_elo_lu = get_bootstrap_result(battles, compute_mle_elo, args.num_rounds, args.baseline)
         bootstrap_elo_lu.to_json("data/bootstrapping_results.jsonl", lines=True, orient="records")
 
     stats = pd.DataFrame()
