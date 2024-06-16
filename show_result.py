@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 
-import tiktoken
 import datetime
 import argparse
 import os
@@ -10,12 +9,14 @@ import math
 
 from glob import glob
 from tqdm import tqdm
+import inspect
 
 from sklearn.linear_model import LogisticRegression
 from collections import defaultdict
 from utils import load_model_answers
 
-def compute_mle_elo(df, SCALE=400, BASE=10, INIT_RATING=1000):
+
+def compute_mle_elo(df, SCALE=400, BASE=10, INIT_RATING=1000, baseline_model="gpt-4-0314"):
     models = pd.concat([df["model_a"], df["model_b"]]).unique()
     models = pd.Series(np.arange(len(models)), index=models)
 
@@ -44,15 +45,18 @@ def compute_mle_elo(df, SCALE=400, BASE=10, INIT_RATING=1000):
     elo_scores = SCALE * lr.coef_[0] + INIT_RATING
 
     # set anchor as gpt-4-0314 = 1000
-    if "gpt-4-0314" in models.index:
-        elo_scores += 1000 - elo_scores[models["gpt-4-0314"]]
-    return pd.Series(elo_scores, index = models.index).sort_values(ascending=False)
+    if baseline_model in models.index:
+        elo_scores += 1000 - elo_scores[models[baseline_model]]
+    return pd.Series(elo_scores, index=models.index).sort_values(ascending=False)
 
 
-def get_bootstrap_result(battles, func_compute_elo, num_round):
+def get_bootstrap_result(battles, func_compute_elo, num_round, baseline_model="gpt-4-0314"):
     rows = []
-    for i in tqdm(range(num_round), desc="bootstrap"):
-        rows.append(func_compute_elo(battles.sample(frac=1.0, replace=True)))
+    kwargs = {}
+    if baseline_model in inspect.signature(func_compute_elo).parameters:
+        kwargs[baseline_model] = baseline_model
+    for _ in tqdm(range(num_round), desc="bootstrap"):
+        rows.append(func_compute_elo(battles.sample(frac=1.0, replace=True), **kwargs))
     df = pd.DataFrame(rows)
     return df[df.median().sort_values(ascending=False).index]
 
@@ -109,7 +113,7 @@ def get_win_rate_column(df, column, baseline="gpt-4-0314"):
     return win_rate_table[baseline].fillna(0.5).apply(lambda x: round(x * 100, 2))
 
 
-def get_battles_from_judgment(judge_name, first_game_only=False, WEIGHT=3):
+def get_battles_from_judgment(judge_name, first_game_only=False, WEIGHT=3, baseline_model="gpt-4-0314"):
     arena_hard_battles = pd.DataFrame()
     
     print("Turning judgment results into battles...")
@@ -122,7 +126,7 @@ def get_battles_from_judgment(judge_name, first_game_only=False, WEIGHT=3):
         for _, row in df.iterrows():
             # game 1
             output = {"question_id": row["question_id"],
-                    "model_a": "gpt-4-0314",
+                    "model_a": baseline_model,
                     "model_b": row["model"]}
 
             game = row["games"][0]
@@ -149,7 +153,7 @@ def get_battles_from_judgment(judge_name, first_game_only=False, WEIGHT=3):
             if not first_game_only:
                 # game 2
                 output = {"question_id": row["question_id"],
-                        "model_a": "gpt-4-0314",
+                        "model_a": baseline_model,
                         "model_b": row["model"]}
 
                 game = row["games"][1]
@@ -199,16 +203,16 @@ if __name__ == "__main__":
         assert os.path.exists("data/arena_hard_battles.jsonl")
         battles = pd.read_json("data/arena_hard_battles.jsonl", lines=True)
     else:
-        battles = get_battles_from_judgment(args.judge_name, args.first_game_only, args.weight)
+        battles = get_battles_from_judgment(args.judge_name, args.first_game_only, args.weight, args.baseline)
         
-    bootstrap_online_elo = compute_mle_elo(battles)
+    bootstrap_online_elo = compute_mle_elo(battles, baseline_model=args.baseline)
 
 
     if args.load_bootstrap:
         bootstrap_elo_lu = pd.read_json("data/bootstrapping_results.jsonl", lines=True)
     else:
         np.random.seed(42)
-        bootstrap_elo_lu = get_bootstrap_result(battles, compute_mle_elo, args.num_rounds)
+        bootstrap_elo_lu = get_bootstrap_result(battles, compute_mle_elo, args.num_rounds, args.baseline)
         bootstrap_elo_lu.to_json("data/bootstrapping_results.jsonl", lines=True, orient="records")
 
     stats = pd.DataFrame()
