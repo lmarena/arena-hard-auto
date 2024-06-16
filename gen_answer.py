@@ -85,7 +85,7 @@ def get_answer(
                                                 api_dict=api_dict)
             conv.append({"role": "assistant", "content": output})
 
-            turns.append({"content": output, "token_len": len(encoding.encode(output))})
+            turns.append({"content": output, "token_len": len(encoding.encode(output, disallowed_special=()))})
         choices.append({"index": i, "turns": turns})
 
     # Dump answers
