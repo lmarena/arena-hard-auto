@@ -1,7 +1,7 @@
 # Arena-Hard-Auto
 Arena-Hard-Auto-v0.1 is an automatic evaluation tool for instruction-tuned LLMs. It contains 500 challenging user queries. We prompt GPT-4-Turbo as judge to compare the models' responses against a baseline model (default: GPT-4-0314). Although both Arena-Hard-Auto and Chatbot Arena Category Hard employ similar pipeline to select hard prompts, Arena-Hard-Auto employs automatic judge as a cheaper and faster approximator to human preference. Notably, Arena-Hard-Auto has the highest correlation and separability to Chatbot Arena among popular open-ended LLM benchmarks (see our blog post). If you are curious to see how well your model might perform on Chatbot Arena, we recommend trying Arena-Hard-Auto. 
 
-Check out our blog post for more details about how Arena Hard Auto v0.1 works -> [Blog post link](https://lmsys.org/blog/2024-04-19-arena-hard/).
+Check out our paper for more details about how Arena Hard Auto v0.1 works -> [Paper link](https://arxiv.org/abs/2406.11939).
 
 ## Full Leaderboard (Updated: 05/21)
 ```console
@@ -155,12 +155,14 @@ You can review individual judgment results using our UI code.
 Coming soon...
 
 ## Citation
+The code in this repository is mostly developed for or derived from the paper below. Please cite it if you find the repository helpful.
 ```
-@misc{arenahard2024,
-    title = {From Live Data to High-Quality Benchmarks: The Arena-Hard Pipeline},
-    url = {https://lmsys.org/blog/2024-04-19-arena-hard/},
-    author = {Tianle Li*, Wei-Lin Chiang*, Evan Frick, Lisa Dunlap, Banghua Zhu, Joseph E. Gonzalez, Ion Stoica},
-    month = {April},
-    year = {2024}
+@misc{li2024crowdsourced,
+      title={From Crowdsourced Data to High-Quality Benchmarks: Arena-Hard and BenchBuilder Pipeline}, 
+      author={Tianle Li and Wei-Lin Chiang and Evan Frick and Lisa Dunlap and Tianhao Wu and Banghua Zhu and Joseph E. Gonzalez and Ion Stoica},
+      year={2024},
+      eprint={2406.11939},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
 }
 ```
