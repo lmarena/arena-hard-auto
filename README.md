@@ -155,7 +155,7 @@ You can review individual judgment results using our UI code.
 Coming soon...
 
 ## Citation
-The code in this repository is mostly developed for or derived from the paper below. Please cite it if you find the repository helpful.
+The code in this repository is mostly developed for or derived from the papers below. Please cite it if you find the repository helpful.
 ```
 @misc{li2024crowdsourced,
       title={From Crowdsourced Data to High-Quality Benchmarks: Arena-Hard and BenchBuilder Pipeline}, 
@@ -164,5 +164,20 @@ The code in this repository is mostly developed for or derived from the paper be
       eprint={2406.11939},
       archivePrefix={arXiv},
       primaryClass={cs.LG}
+}
+@misc{chiang2024chatbot,
+    title={Chatbot Arena: An Open Platform for Evaluating LLMs by Human Preference},
+    author={Wei-Lin Chiang and Lianmin Zheng and Ying Sheng and Anastasios Nikolas Angelopoulos and Tianle Li and Dacheng Li and Hao Zhang and Banghua Zhu and Michael Jordan and Joseph E. Gonzalez and Ion Stoica},
+    year={2024},
+    eprint={2403.04132},
+    archivePrefix={arXiv},
+    primaryClass={cs.AI}
+}
+@misc{arenahard2024,
+    title = {From Live Data to High-Quality Benchmarks: The Arena-Hard Pipeline},
+    url = {https://lmsys.org/blog/2024-04-19-arena-hard/},
+    author = {Tianle Li*, Wei-Lin Chiang*, Evan Frick, Lisa Dunlap, Banghua Zhu, Joseph E. Gonzalez, Ion Stoica},
+    month = {April},
+    year = {2024}
 }
 ```
