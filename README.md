@@ -102,8 +102,18 @@ gpt-3.5-turbo-0125:
     api_type: openai
     parallel: 8
 ```
-You may use inference engine such as [vLLM](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html) or [SGLang](https://github.com/sgl-project/sglang?tab=readme-ov-file#using-local-models) to host your model with an OpenAI compatible API server.
+You may use inference engine such as [Latest TGI version](https://huggingface.co/docs/text-generation-inference/en/messages_api) or [vLLM](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html) or [SGLang](https://github.com/sgl-project/sglang?tab=readme-ov-file#using-local-models) to host your model with an OpenAI compatible API server.
 
+TGI Quick start
+```
+hf_pat=
+model=
+volume=/path/to/cache
+port=1996
+
+huggingface-cli download $model
+sudo docker run --gpus 8 -e HUGGING_FACE_HUB_TOKEN=$hf_pat --shm-size 2000g -p $port:80 -v $volume:/data ghcr.io/huggingface/text-generation-inference:2.0.4 --model-id $model --max-input-length 8192 --max-batch-total-tokens 8193 --max-batch-prefill-tokens 8193 --max-total-tokens 8193
+```
 
 ### Step 2. Generate Model Answers
 
@@ -113,6 +123,7 @@ bench_name: arena-hard-v0.1
 temperature: 0.0
 max_tokens: 4096
 num_choices: 1
+
 
 model_list:
   - [YOUR-MODEL-NAME]
