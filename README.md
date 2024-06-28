@@ -10,11 +10,13 @@ gpt-4o                         | score: 79.2  | 95% CI: (-1.9, 1.7)  | average #
 gpt-4-0125-preview             | score: 78.0  | 95% CI: (-2.1, 2.4)  | average #tokens: 619
 gemini-1.5-pro-api-preview     | score: 72.0  | 95% CI: (-2.1, 2.5)  | average #tokens: 676
 glm-4-0520                     | score: 63.8  | 95% CI: (-2.9, 2.8)  | average #tokens: 636          
-yi-large                       | score: 63.7  | 95% CI: (-2.6, 2.4)  | average #tokens: 626   
+yi-large                       | score: 63.7  | 95% CI: (-2.6, 2.4)  | average #tokens: 626
+deepseek-coder-v2              | score: 62.3  | 95% CI: (-2.1, 1.8)  | average #tokens: 578             
 claude-3-opus-20240229         | score: 60.4  | 95% CI: (-2.5, 2.5)  | average #tokens: 541
 glm-4-0116                     | score: 55.7  | 95% CI: (-2.4, 2.3)  | average #tokens: 622
 gpt-4-0314                     | score: 50.0  | 95% CI:  (0.0, 0.0)  | average #tokens: 423
 gemini-1.5-flash-api-preview   | score: 49.6  | 95% CI: (-2.2, 2.8)  | average #tokens: 642
+qwen2-72b-instruct             | score: 46.9  | 95% CI: (-2.5, 2.7)  | average #tokens: 515          
 claude-3-sonnet-20240229       | score: 46.8  | 95% CI: (-2.3, 2.7)  | average #tokens: 552
 claude-3-haiku-20240307        | score: 41.5  | 95% CI: (-2.5, 2.5)  | average #tokens: 505
 llama-3-70b-chat-hf            | score: 41.1  | 95% CI: (-2.0, 2.2)  | average #tokens: 583
