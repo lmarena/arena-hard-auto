@@ -5,12 +5,14 @@ Check out our paper for more details about how Arena Hard Auto v0.1 works -> [Pa
 
 ## Full Leaderboard (Updated: 05/21)
 ```console
-gpt-4-turbo-2024-04-09         | score: 82.6  | 95% CI: (-1.7, 1.9)  | average #tokens: 662
+claude-3-5-sonnet-20240620     | score: 79.3  | 95% CI: (-2.1, 2.0)  | average #tokens: 567
+gpt-4o                         | score: 79.2  | 95% CI: (-1.9, 1.7)  | average #tokens: 696          
 gpt-4-0125-preview             | score: 78.0  | 95% CI: (-2.1, 2.4)  | average #tokens: 619
 gemini-1.5-pro-api-preview     | score: 72.0  | 95% CI: (-2.1, 2.5)  | average #tokens: 676
+glm-4-0520                     | score: 63.8  | 95% CI: (-2.9, 2.8)  | average #tokens: 636          
 yi-large                       | score: 63.7  | 95% CI: (-2.6, 2.4)  | average #tokens: 626   
 claude-3-opus-20240229         | score: 60.4  | 95% CI: (-2.5, 2.5)  | average #tokens: 541
-glm-4                          | score: 55.7  | 95% CI: (-2.4, 2.3)  | average #tokens: 622
+glm-4-0116                     | score: 55.7  | 95% CI: (-2.4, 2.3)  | average #tokens: 622
 gpt-4-0314                     | score: 50.0  | 95% CI:  (0.0, 0.0)  | average #tokens: 423
 gemini-1.5-flash-api-preview   | score: 49.6  | 95% CI: (-2.2, 2.8)  | average #tokens: 642
 claude-3-sonnet-20240229       | score: 46.8  | 95% CI: (-2.3, 2.7)  | average #tokens: 552
@@ -20,8 +22,10 @@ gpt-4-0613                     | score: 37.9  | 95% CI: (-2.8, 2.4)  | average #
 mistral-large-2402             | score: 37.7  | 95% CI: (-2.1, 2.6)  | average #tokens: 400
 mixtral-8x22b-instruct-v0.1    | score: 36.4  | 95% CI: (-2.4, 2.6)  | average #tokens: 430
 Qwen1.5-72B-Chat               | score: 36.1  | 95% CI: (-2.0, 2.7)  | average #tokens: 474
+phi-3-medium-4k-instruct       | score: 33.4  | 95% CI: (-2.6, 2.1)  | average #tokens: 517          
 command-r-plus                 | score: 33.1  | 95% CI: (-2.8, 2.4)  | average #tokens: 541
 mistral-medium                 | score: 31.9  | 95% CI: (-1.9, 2.2)  | average #tokens: 485
+phi-3-small-8k-instruct        | score: 29.8  | 95% CI: (-1.8, 1.9)  | average #tokens: 568          
 mistral-next                   | score: 27.4  | 95% CI: (-2.4, 2.4)  | average #tokens: 297
 gpt-3.5-turbo-0613             | score: 24.8  | 95% CI: (-1.9, 2.3)  | average #tokens: 401
 claude-2.0                     | score: 24.0  | 95% CI: (-1.8, 1.8)  | average #tokens: 295
