@@ -3,7 +3,7 @@ Arena-Hard-Auto-v0.1 is an automatic evaluation tool for instruction-tuned LLMs.
 
 Check out our paper for more details about how Arena Hard Auto v0.1 works -> [Paper link](https://arxiv.org/abs/2406.11939).
 
-## Full Leaderboard (Updated: 06/28)
+## Full Leaderboard (Updated: 06/29)
 ```console
 claude-3-5-sonnet-20240620     | score: 79.3  | 95% CI: (-2.1, 2.0)  | average #tokens: 567
 gpt-4o                         | score: 79.2  | 95% CI: (-1.9, 1.7)  | average #tokens: 696          
@@ -13,7 +13,9 @@ glm-4-0520                     | score: 63.8  | 95% CI: (-2.9, 2.8)  | average #
 yi-large                       | score: 63.7  | 95% CI: (-2.6, 2.4)  | average #tokens: 626
 deepseek-coder-v2              | score: 62.3  | 95% CI: (-2.1, 1.8)  | average #tokens: 578             
 claude-3-opus-20240229         | score: 60.4  | 95% CI: (-2.5, 2.5)  | average #tokens: 541
+gemma-2-27b-it                 | score: 57.5  | 95% CI: (-2.1, 2.4)  | average #tokens: 577 
 glm-4-0116                     | score: 55.7  | 95% CI: (-2.4, 2.3)  | average #tokens: 622
+glm-4-air                      | score: 50.9  | 95% CI: (-2.9, 2.7)  | average #tokens: 619
 gpt-4-0314                     | score: 50.0  | 95% CI:  (0.0, 0.0)  | average #tokens: 423
 gemini-1.5-flash-api-preview   | score: 49.6  | 95% CI: (-2.2, 2.8)  | average #tokens: 642
 qwen2-72b-instruct             | score: 46.9  | 95% CI: (-2.5, 2.7)  | average #tokens: 515          
