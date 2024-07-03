@@ -256,3 +256,22 @@ if __name__ == "__main__":
         cur_date = datetime.datetime.now()
         date_str = cur_date.strftime("%Y%m%d")
         stats.to_json(f"arena_hard_leaderboard_{date_str}.json", orient="records", indent=4)
+
+        stats = stats.drop(columns=['results'])
+        CI = []
+        for i in range(len(stats)):
+            score = stats.iloc[i]['score']
+            upper = stats.iloc[i]['upper']
+            lower = stats.iloc[i]['lower']
+            CI.append(f"(-{(score-lower):.2f}, +{(upper-score):.2f})")
+
+        stats["CI"] = CI
+        col_list = list(stats)
+        stats = stats.loc[:,col_list]
+        stats.rename(columns={'upper': 'rating_q975'}, inplace=True)
+        stats.rename(columns={'lower': 'rating_q025'}, inplace=True)
+
+        col_list = list(stats)
+        col_list[-2], col_list[-1] = col_list[-1], col_list[-2]
+        stats = stats.loc[:,col_list]
+        stats.to_csv(f"arena_hard_leaderboard_{date_str}.csv", index=False)
