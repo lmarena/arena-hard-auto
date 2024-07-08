@@ -255,8 +255,6 @@ if __name__ == "__main__":
     if args.output:
         cur_date = datetime.datetime.now()
         date_str = cur_date.strftime("%Y%m%d")
-        stats.to_json(f"arena_hard_leaderboard_{date_str}.json", orient="records", indent=4)
-
         stats = stats.drop(columns=['results'])
         CI = []
         for i in range(len(stats)):
@@ -274,4 +272,4 @@ if __name__ == "__main__":
         col_list = list(stats)
         col_list[-2], col_list[-1] = col_list[-1], col_list[-2]
         stats = stats.loc[:,col_list]
-        stats.to_csv(f"arena_hard_leaderboard_{date_str}.csv", index=False)
+        stats.to_csv(f"leaderboard/arena_hard_leaderboard_{date_str}.csv", index=False)
