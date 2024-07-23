@@ -4,6 +4,7 @@ import time
 import yaml
 import random
 import requests
+import pandas as pd
 
 from typing import Optional
 from glob import glob
@@ -333,3 +334,60 @@ def reorg_answer_file(answer_file):
     with open(answer_file, "w") as fout:
         for qid in qids:
             fout.write(answers[qid])
+
+def merge_leaderboards(leaderboard_table, arena_hard_leaderboard):
+    arena_hard_info = {}
+    arena_hard_df = pd.read_csv(arena_hard_leaderboard)
+    leaderboard_df = pd.read_csv(leaderboard_table)
+    leaderboard_models = set(leaderboard_df["key"])
+    for i in range(len(arena_hard_df)):
+        arena_hard_info[arena_hard_df.loc[i, "model"]] = {
+            "score": arena_hard_df.loc[i, "score"],
+            "rating_q025": arena_hard_df.loc[i, "rating_q025"],
+            "rating_q975": arena_hard_df.loc[i, "rating_q975"],
+            "CI": arena_hard_df.loc[i, "CI"],
+            "avg_tokens": arena_hard_df.loc[i, "avg_tokens"],
+            "date": arena_hard_df.loc[i, "date"],
+        }
+        assert (
+            arena_hard_df.loc[i, "model"] in leaderboard_models
+        ), "update leaderboard table"
+    arena_hard_score = []
+    arena_hard_rating_q025 = []
+    arena_hard_rating_q975 = []
+    arena_hard_CI = []
+    arena_hard_avg_tokens = []
+    arena_hard_date = []
+    for i in range(len(leaderboard_df)):
+        if leaderboard_df.loc[i, "key"] in arena_hard_info:
+            arena_hard_score.append(
+                arena_hard_info[leaderboard_df.loc[i, "key"]]["score"]
+            )
+            arena_hard_rating_q025.append(
+                arena_hard_info[leaderboard_df.loc[i, "key"]]["rating_q025"]
+            )
+            arena_hard_rating_q975.append(
+                arena_hard_info[leaderboard_df.loc[i, "key"]]["rating_q975"]
+            )
+            arena_hard_CI.append(arena_hard_info[leaderboard_df.loc[i, "key"]]["CI"])
+            arena_hard_avg_tokens.append(
+                arena_hard_info[leaderboard_df.loc[i, "key"]]["avg_tokens"]
+            )
+            arena_hard_date.append(
+                arena_hard_info[leaderboard_df.loc[i, "key"]]["date"]
+            )
+        else:
+            arena_hard_score.append("-")
+            arena_hard_rating_q025.append("-")
+            arena_hard_rating_q975.append("-")
+            arena_hard_CI.append("-")
+            arena_hard_avg_tokens.append("-")
+            arena_hard_date.append("-")
+
+    leaderboard_df["arena_hard_score"] = arena_hard_score
+    leaderboard_df["arena_hard_rating_q025"] = arena_hard_rating_q025
+    leaderboard_df["arena_hard_rating_q975"] = arena_hard_rating_q975
+    leaderboard_df["arena_hard_CI"] = arena_hard_CI
+    leaderboard_df["arena_hard_avg_tokens"] = arena_hard_avg_tokens
+    leaderboard_df["arena_hard_date"] = arena_hard_date
+    leaderboard_df.to_csv(leaderboard_table, index=False)
