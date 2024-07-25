@@ -8,6 +8,7 @@ Check out our paper for more details about how Arena Hard Auto v0.1 works -> [Pa
 claude-3-5-sonnet-20240620     | score: 79.3  | 95% CI: (-2.1, 2.0)  | average #tokens: 567
 gpt-4o                         | score: 79.2  | 95% CI: (-1.9, 1.7)  | average #tokens: 696          
 gpt-4-0125-preview             | score: 78.0  | 95% CI: (-2.1, 2.4)  | average #tokens: 619
+gpt-4o-mini                    | score: 74.9  | 95% CI: (-2.5, 1.9   | average #tokens: 668
 gemini-1.5-pro-api-preview     | score: 72.0  | 95% CI: (-2.1, 2.5)  | average #tokens: 676
 glm-4-0520                     | score: 63.8  | 95% CI: (-2.9, 2.8)  | average #tokens: 636          
 yi-large                       | score: 63.7  | 95% CI: (-2.6, 2.4)  | average #tokens: 626
@@ -177,13 +178,14 @@ Coming soon...
 ## Citation
 The code in this repository is mostly developed for or derived from the papers below. Please cite it if you find the repository helpful.
 ```
-@misc{li2024crowdsourced,
+@misc{li2024crowdsourceddatahighqualitybenchmarks,
       title={From Crowdsourced Data to High-Quality Benchmarks: Arena-Hard and BenchBuilder Pipeline}, 
       author={Tianle Li and Wei-Lin Chiang and Evan Frick and Lisa Dunlap and Tianhao Wu and Banghua Zhu and Joseph E. Gonzalez and Ion Stoica},
       year={2024},
       eprint={2406.11939},
       archivePrefix={arXiv},
-      primaryClass={cs.LG}
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2406.11939}, 
 }
 @misc{chiang2024chatbot,
     title={Chatbot Arena: An Open Platform for Evaluating LLMs by Human Preference},
