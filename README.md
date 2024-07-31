@@ -3,17 +3,22 @@ Arena-Hard-Auto-v0.1 is an automatic evaluation tool for instruction-tuned LLMs.
 
 Check out our paper for more details about how Arena Hard Auto v0.1 works -> [Paper link](https://arxiv.org/abs/2406.11939).
 
-## Full Leaderboard (Updated: 07/05)
+## Full Leaderboard (Updated: 07/26)
 ```console
 claude-3-5-sonnet-20240620     | score: 79.3  | 95% CI: (-2.1, 2.0)  | average #tokens: 567
-gpt-4o                         | score: 79.2  | 95% CI: (-1.9, 1.7)  | average #tokens: 696          
+gpt-4o                         | score: 79.2  | 95% CI: (-1.9, 1.7)  | average #tokens: 696        
 gpt-4-0125-preview             | score: 78.0  | 95% CI: (-2.1, 2.4)  | average #tokens: 619
+athene-70b                     | score: 77.6  | 95% CI: (-2.7, 2.2)  | average #tokens: 684
+gpt-4o-mini                    | score: 74.9  | 95% CI: (-2.5, 1.9)  | average #tokens: 668
 gemini-1.5-pro-api-preview     | score: 72.0  | 95% CI: (-2.1, 2.5)  | average #tokens: 676
+mistral-large-2407             | score: 70.4  | 95% CI: (-1.6, 2.1)  | average #tokens: 623
+llama-3.1-405b-instruct        | score: 64.1  | 95% CI: (-2.2, 2.9)  | average #tokens: 633
 glm-4-0520                     | score: 63.8  | 95% CI: (-2.9, 2.8)  | average #tokens: 636          
 yi-large                       | score: 63.7  | 95% CI: (-2.6, 2.4)  | average #tokens: 626
 deepseek-coder-v2              | score: 62.3  | 95% CI: (-2.1, 1.8)  | average #tokens: 578             
 claude-3-opus-20240229         | score: 60.4  | 95% CI: (-2.5, 2.5)  | average #tokens: 541
-gemma-2-27b-it                 | score: 57.5  | 95% CI: (-2.1, 2.4)  | average #tokens: 577 
+gemma-2-27b-it                 | score: 57.5  | 95% CI: (-2.1, 2.4)  | average #tokens: 577
+llama-3.1-70b-instruct         | score: 55.7  | 95% CI: (-2.9, 2.7)  | average #tokens: 628
 glm-4-0116                     | score: 55.7  | 95% CI: (-2.4, 2.3)  | average #tokens: 622
 glm-4-air                      | score: 50.9  | 95% CI: (-2.9, 2.7)  | average #tokens: 619
 gpt-4-0314                     | score: 50.0  | 95% CI:  (0.0, 0.0)  | average #tokens: 423
@@ -39,8 +44,9 @@ gpt-3.5-turbo-0125             | score: 23.3  | 95% CI: (-2.2, 1.9)  | average #
 Yi-34B-Chat                    | score: 23.1  | 95% CI: (-1.6, 1.8)  | average #tokens: 611
 Starling-LM-7B-beta            | score: 23.0  | 95% CI: (-1.8, 1.8)  | average #tokens: 530
 claude-2.1                     | score: 22.8  | 95% CI: (-2.3, 1.8)  | average #tokens: 290
+llama-3.1-8b-instruct          | score: 21.3  | 95% CI: (-1.9, 2.2)  | average #tokens: 861
 Snorkel-Mistral-PairRM-DPO     | score: 20.7  | 95% CI: (-1.8, 2.2)  | average #tokens: 564                       
-llama-3-8b-chat-hf             | score: 20.6  | 95% CI: (-2.0, 1.9)  | average #tokens: 585                       
+llama-3-8b-instruct            | score: 20.6  | 95% CI: (-2.0, 1.9)  | average #tokens: 585                       
 gpt-3.5-turbo-1106             | score: 18.9  | 95% CI: (-1.8, 1.6)  | average #tokens: 285                       
 gpt-3.5-turbo-0301             | score: 18.1  | 95% CI: (-1.9, 2.1)  | average #tokens: 334                               
 gemini-1.0-pro                 | score: 17.8  | 95% CI: (-1.2, 2.2)  | average #tokens: 322                               
@@ -168,7 +174,7 @@ Output model win rates.  Optionally, use `--full-stats` for detailed results. To
 ### Step 5. Arena Hard UI
 You can review individual judgment results using our UI code.
 ```console
-> python qa_broswer.py --share
+> python qa_browser.py --share
 ```
 
 ## Community Contribution
@@ -177,13 +183,14 @@ Coming soon...
 ## Citation
 The code in this repository is mostly developed for or derived from the papers below. Please cite it if you find the repository helpful.
 ```
-@misc{li2024crowdsourced,
+@misc{li2024crowdsourceddatahighqualitybenchmarks,
       title={From Crowdsourced Data to High-Quality Benchmarks: Arena-Hard and BenchBuilder Pipeline}, 
       author={Tianle Li and Wei-Lin Chiang and Evan Frick and Lisa Dunlap and Tianhao Wu and Banghua Zhu and Joseph E. Gonzalez and Ion Stoica},
       year={2024},
       eprint={2406.11939},
       archivePrefix={arXiv},
-      primaryClass={cs.LG}
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2406.11939}, 
 }
 @misc{chiang2024chatbot,
     title={Chatbot Arena: An Open Platform for Evaluating LLMs by Human Preference},
