@@ -6,8 +6,9 @@ Check out our paper for more details about how Arena Hard Auto v0.1 works -> [Pa
 ## Full Leaderboard (Updated: 07/26)
 ```console
 claude-3-5-sonnet-20240620     | score: 79.3  | 95% CI: (-2.1, 2.0)  | average #tokens: 567
-gpt-4o                         | score: 79.2  | 95% CI: (-1.9, 1.7)  | average #tokens: 696        
+gpt-4o-2024-05-13              | score: 79.2  | 95% CI: (-1.9, 1.7)  | average #tokens: 696        
 gpt-4-0125-preview             | score: 78.0  | 95% CI: (-2.1, 2.4)  | average #tokens: 619
+gpt-4o-2024-08-06              | score: 77.9  | 95% CI: (-2.0, 2.1)  | average #tokens: 594
 athene-70b                     | score: 77.6  | 95% CI: (-2.7, 2.2)  | average #tokens: 684
 gpt-4o-mini                    | score: 74.9  | 95% CI: (-2.5, 1.9)  | average #tokens: 668
 gemini-1.5-pro-api-preview     | score: 72.0  | 95% CI: (-2.1, 2.5)  | average #tokens: 676
