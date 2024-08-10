@@ -3,7 +3,7 @@ Arena-Hard-Auto-v0.1 is an automatic evaluation tool for instruction-tuned LLMs.
 
 Check out our paper for more details about how Arena Hard Auto v0.1 works -> [Paper link](https://arxiv.org/abs/2406.11939).
 
-## Full Leaderboard (Updated: 07/26)
+## Full Leaderboard (Updated: 08/09)
 ```console
 claude-3-5-sonnet-20240620     | score: 79.3  | 95% CI: (-2.1, 2.0)  | average #tokens: 567
 gpt-4o-2024-05-13              | score: 79.2  | 95% CI: (-1.9, 1.7)  | average #tokens: 696        
@@ -35,11 +35,13 @@ Qwen1.5-72B-Chat               | score: 36.1  | 95% CI: (-2.0, 2.7)  | average #
 phi-3-medium-4k-instruct       | score: 33.4  | 95% CI: (-2.6, 2.1)  | average #tokens: 517          
 command-r-plus                 | score: 33.1  | 95% CI: (-2.8, 2.4)  | average #tokens: 541
 mistral-medium                 | score: 31.9  | 95% CI: (-1.9, 2.2)  | average #tokens: 485
+internlm2.5-20b-chat           | score: 31.2  | 95% CI: (-2.4, 2.8)  | average #tokens: 576
 phi-3-small-8k-instruct        | score: 29.8  | 95% CI: (-1.8, 1.9)  | average #tokens: 568          
 mistral-next                   | score: 27.4  | 95% CI: (-2.4, 2.4)  | average #tokens: 297
 gpt-3.5-turbo-0613             | score: 24.8  | 95% CI: (-1.9, 2.3)  | average #tokens: 401
+dbrx-instruct-preview          | score: 24.6  | 95% CI: (-2.0, 2.6)  | average #tokens: 415
+internlm2-20b-chat             | score: 24.4  | 95% CI: (-2.0, 2.2)  | average #tokens: 667
 claude-2.0                     | score: 24.0  | 95% CI: (-1.8, 1.8)  | average #tokens: 295
-dbrx-instruct                  | score: 23.9  | 95% CI: (-1.5, 1.5)  | average #tokens: 415
 Mixtral-8x7B-Instruct-v0.1     | score: 23.4  | 95% CI: (-2.0, 1.9)  | average #tokens: 457
 gpt-3.5-turbo-0125             | score: 23.3  | 95% CI: (-2.2, 1.9)  | average #tokens: 329
 Yi-34B-Chat                    | score: 23.1  | 95% CI: (-1.6, 1.8)  | average #tokens: 611
