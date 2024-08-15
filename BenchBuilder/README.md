@@ -1,5 +1,7 @@
 ## BenchBuilder
 
+![BenchBuilder Pipeline](../misc/pipeline_method.png)
+
 An automatic pipeline to create high-quality benchmark. BenchBuilder was used on Chatbot Arena data to curate Arena-Hard-v0.1
 
 BenchBuilder employs a two stage pipeline.
