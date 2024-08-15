@@ -1,8 +1,9 @@
 ## BenchBuilder
+An automatic pipeline to create high-quality benchmark. BenchBuilder was used on Chatbot Arena data to curate Arena-Hard-v0.1.
+
+Checkout our [paper](https://arxiv.org/abs/2406.11939) for more details.
 
 ![BenchBuilder Pipeline](../misc/pipeline_method.png)
-
-An automatic pipeline to create high-quality benchmark. BenchBuilder was used on Chatbot Arena data to curate Arena-Hard-v0.1
 
 BenchBuilder employs a two stage pipeline.
 
@@ -12,4 +13,22 @@ Step 2: use GPT-4-Turbo to annotate the remaining prompts, then extract prompts 
 
 After BenchBuilder, we stratified sampled multiple prompts per cluster to create a benchmark. However, you may employ whatever sampling scheme on prompts produced by BenchBuilder.
 
-Checkout our [paper](https://arxiv.org/abs/2406.11939) for more details.
+For Chatbot Arena Category Hard Prompts, which also employed BenchBuilder, we used Llama-3-70B-Instruct as LLM annotators. Check out our Category Hard Prompt [blogpost](https://lmsys.org/blog/2024-05-17-category-hard/) for more detail.
+
+To topic cluster your dataset:
+```console
+python topic_clustering.py --conv-file [your json file] --min-topic-size 8
+```
+
+To annotate your dataset with key criteria:
+```console
+python label.py --config config.yaml
+```
+Make sure to properly configure your `config.yaml` before begin labeling.
+
+We also employ BenchBuilder on [allenai/WildChat-1M](https://huggingface.co/datasets/allenai/WildChat-1M) and produce 250 high-quality prompts, Wild-Hard-250. We evaluate 10 of the 20 models outlined in the paper on Wild-Hard-250 and a random sample of 250 prompts from Wild-Chat dataset using GPT-4-Turbo as judge.
+
+|    | Wild-Hard-250 | Wild-Chat-Random
+| --- | ---- | ----
+| Spearman Correlation |	93.6	|		38.2
+| Kendall Tau |	85.5	|		27.3

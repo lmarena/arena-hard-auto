@@ -1,0 +1,21 @@
+# Yaml config file for category classification
+
+input_file: null # json
+cache_file: null # json
+output_file: null # json line
+
+convert_to_json: True
+
+task_name:
+  - criteria_v0.1
+
+model_name: gpt-3.5-turbo-0125
+endpoints: null
+parallel: 8
+temperature: 0.0
+max_token: 32
+api_type: openai
+
+max_retry: 2
+retry_sleep: 10
+error_output: $ERROR$
