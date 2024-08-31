@@ -113,71 +113,75 @@ def get_win_rate_column(df, column, baseline="gpt-4-0314"):
     return win_rate_table[baseline].fillna(0.5).apply(lambda x: round(x * 100, 2))
 
 
-def get_battles_from_judgment(bench_name, judge_name, first_game_only=False, WEIGHT=3, baseline_model="gpt-4-0314"):
-    arena_hard_battles = pd.DataFrame()
+def get_battles_from_row(row, first_game_only, multiplier, baseline_model):
+    results = []
+    output = {"question_id": row["question_id"],
+              "model_a": baseline_model,
+              "model_b": row["model"]}
     
+    game = row["games"][0]
+    weight = 1
+    if game["score"] == "A=B":
+        output["winner"] = "tie"
+    elif game["score"] == "A>B":
+        output["winner"] = "model_a"
+    elif game["score"] == "A>>B":
+        output["winner"] = "model_a"
+        weight = multiplier
+    elif game["score"] == "B>A":
+        output["winner"] = "model_b"
+    elif game["score"] == "B>>A":
+        output["winner"] = "model_b"
+        weight = multiplier
+    else:
+        weight = 0
+
+    if weight:
+        results += [output] * weight
+        
+    if first_game_only:
+        return results
+    
+    # game 2
+    output = {"question_id": row["question_id"],
+            "model_a": baseline_model,
+            "model_b": row["model"]}
+
+    game = row["games"][1]
+
+    weight = 1
+    if game["score"] == "A=B":
+        output["winner"] = "tie"
+    elif game["score"] == "A>B":
+        output["winner"] = "model_b"
+    elif game["score"] == "A>>B":
+        output["winner"] = "model_b"
+        weight = multiplier
+    elif game["score"] == "B>A":
+        output["winner"] = "model_a"
+    elif game["score"] == "B>>A":
+        output["winner"] = "model_a"
+        weight = multiplier
+    else:
+        weight = 0
+
+    if weight:
+        results += [output] * weight
+    
+    return results
+
+
+def get_battles_from_judgment(bench_name, judge_name, first_game_only=False, multiplier=3, baseline_model="gpt-4-0314"):
     print("Turning judgment results into battles...")
 
     directory = f"data/{bench_name}/model_judgment/{judge_name}"
     assert os.path.exists(directory)
-    for file in tqdm(glob(f"{directory}/*jsonl")):
-        df = pd.read_json(file, lines=True)
-
-        for _, row in df.iterrows():
-            # game 1
-            output = {"question_id": row["question_id"],
-                    "model_a": baseline_model,
-                    "model_b": row["model"]}
-
-            game = row["games"][0]
-
-            weight = 1
-            if game["score"] == "A=B":
-                output["winner"] = "tie"
-            elif game["score"] == "A>B":
-                output["winner"] = "model_a"
-            elif game["score"] == "A>>B":
-                output["winner"] = "model_a"
-                weight = WEIGHT
-            elif game["score"] == "B>A":
-                output["winner"] = "model_b"
-            elif game["score"] == "B>>A":
-                output["winner"] = "model_b"
-                weight = WEIGHT
-            else:
-                weight = 0
-
-            if weight:
-                arena_hard_battles = pd.concat([arena_hard_battles, pd.DataFrame([output] * weight)])
-
-            if not first_game_only:
-                # game 2
-                output = {"question_id": row["question_id"],
-                        "model_a": baseline_model,
-                        "model_b": row["model"]}
-
-                game = row["games"][1]
-
-                weight = 1
-                if game["score"] == "A=B":
-                    output["winner"] = "tie"
-                elif game["score"] == "A>B":
-                    output["winner"] = "model_b"
-                elif game["score"] == "A>>B":
-                    output["winner"] = "model_b"
-                    weight = WEIGHT
-                elif game["score"] == "B>A":
-                    output["winner"] = "model_a"
-                elif game["score"] == "B>>A":
-                    output["winner"] = "model_a"
-                    weight = WEIGHT
-                else:
-                    weight = 0
-
-                if weight:
-                    arena_hard_battles = pd.concat([arena_hard_battles, pd.DataFrame([output] * weight)])
-    arena_hard_battles.to_json("data/arena_hard_battles.jsonl", lines=True, orient="records")
-    return arena_hard_battles
+    
+    judgments = pd.concat([pd.read_json(file, lines=True) for file in tqdm(glob(f"{directory}/*jsonl"))])
+    battles = judgments.apply(lambda row: get_battles_from_row(row, first_game_only, multiplier, baseline_model), axis=1)
+    battles = pd.DataFrame(battles[battles.map(len) > 0].explode().tolist())
+    battles.to_json("data/arena_hard_battles.jsonl", lines=True, orient="records")
+    return battles
 
 
 if __name__ == "__main__":
