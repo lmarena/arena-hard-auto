@@ -113,12 +113,12 @@ def get_win_rate_column(df, column, baseline="gpt-4-0314"):
     return win_rate_table[baseline].fillna(0.5).apply(lambda x: round(x * 100, 2))
 
 
-def get_battles_from_judgment(judge_name, first_game_only=False, WEIGHT=3, baseline_model="gpt-4-0314"):
+def get_battles_from_judgment(bench_name, judge_name, first_game_only=False, WEIGHT=3, baseline_model="gpt-4-0314"):
     arena_hard_battles = pd.DataFrame()
     
     print("Turning judgment results into battles...")
 
-    directory = f"data/arena-hard-v0.1/model_judgment/{judge_name}"
+    directory = f"data/{bench_name}/model_judgment/{judge_name}"
     assert os.path.exists(directory)
     for file in tqdm(glob(f"{directory}/*jsonl")):
         df = pd.read_json(file, lines=True)
@@ -203,7 +203,7 @@ if __name__ == "__main__":
         assert os.path.exists("data/arena_hard_battles.jsonl")
         battles = pd.read_json("data/arena_hard_battles.jsonl", lines=True)
     else:
-        battles = get_battles_from_judgment(args.judge_name, args.first_game_only, args.weight, args.baseline)
+        battles = get_battles_from_judgment(args.bench_name, args.judge_name, args.first_game_only, args.weight, args.baseline)
         
     bootstrap_online_elo = compute_mle_elo(battles, baseline_model=args.baseline)
 
