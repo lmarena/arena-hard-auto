@@ -1,119 +1,28 @@
 import pandas as pd
 import numpy as np
-import plotly.express as px
 
 import datetime
 import argparse
 import os
-import math
 
 from glob import glob
 from tqdm import tqdm
-import inspect
 
-from sklearn.linear_model import LogisticRegression
-from collections import defaultdict
 from utils import load_model_answers
+from utils_math import (
+    compute_mle_elo, 
+    get_bootstrap_result,
+    get_win_rate_column,
+    fit_bt,
+    construct_style_matrices,
+    get_bootstrap_result_style_control,
+    STYLE_CONTROL_ELEMENTS,
+    LENGTH_CONTROL_ELEMENTS,
+    MARKDOWN_CONTROL_ELEMENTS,
+)
 
 
-def compute_mle_elo(df, SCALE=400, BASE=10, INIT_RATING=1000, baseline_model="gpt-4-0314"):
-    models = pd.concat([df["model_a"], df["model_b"]]).unique()
-    models = pd.Series(np.arange(len(models)), index=models)
-
-    # duplicate battles
-    df = pd.concat([df, df], ignore_index=True)
-    p = len(models.index)
-    n = df.shape[0]
-
-    X = np.zeros([n, p])
-    X[np.arange(n), models[df["model_a"]]] = +math.log(BASE)
-    X[np.arange(n), models[df["model_b"]]] = -math.log(BASE)
-
-    # one A win => two A win
-    Y = np.zeros(n)
-    Y[df["winner"] == "model_a"] = 1.0
-
-    # one tie => one A win + one B win
-    # find tie + tie (both bad) index
-    tie_idx = (df["winner"] == "tie") | (df["winner"] == "tie (bothbad)")
-    tie_idx[len(tie_idx)//2:] = False
-    Y[tie_idx] = 1.0
-
-    lr = LogisticRegression(fit_intercept=False, penalty=None, tol=1e-8)
-    lr.fit(X,Y)
-
-    elo_scores = SCALE * lr.coef_[0] + INIT_RATING
-
-    # set anchor as gpt-4-0314 = 1000
-    if baseline_model in models.index:
-        elo_scores += 1000 - elo_scores[models[baseline_model]]
-    return pd.Series(elo_scores, index=models.index).sort_values(ascending=False)
-
-
-def get_bootstrap_result(battles, func_compute_elo, num_round, baseline_model="gpt-4-0314"):
-    rows = []
-    kwargs = {}
-    if baseline_model in inspect.signature(func_compute_elo).parameters:
-        kwargs[baseline_model] = baseline_model
-    for _ in tqdm(range(num_round), desc="bootstrap"):
-        rows.append(func_compute_elo(battles.sample(frac=1.0, replace=True), **kwargs))
-    df = pd.DataFrame(rows)
-    return df[df.median().sort_values(ascending=False).index]
-
-
-def preety_print_two_ratings(ratings_1, ratings_2, column_names):
-    df = pd.DataFrame([
-        [n, ratings_1[n], ratings_2[n]] for n in ratings_1.keys()
-    ], columns=["Model", column_names[0], column_names[1]]).sort_values(column_names[0], ascending=False).reset_index(drop=True)
-    df[column_names[0]] = (df[column_names[0]] + 0.5).astype(int)
-    df[column_names[1]] = (df[column_names[1]] + 0.5).astype(int)
-    df.index = df.index + 1
-    return df
-
-
-def visualize_bootstrap_scores(df, title):
-    bars = pd.DataFrame(dict(
-        lower = df.quantile(.025),
-        rating = df.quantile(.5),
-        upper = df.quantile(.975))).reset_index(names="model").sort_values("rating", ascending=False)
-    bars['error_y'] = bars['upper'] - bars["rating"]
-    bars['error_y_minus'] = bars['rating'] - bars["lower"]
-    bars['rating_rounded'] = np.round(bars['rating'], 2)
-    fig = px.scatter(bars, x="model", y="rating", error_y="error_y",
-                     error_y_minus="error_y_minus", text="rating_rounded",
-                     title=title)
-    fig.update_layout(xaxis_title="Model", yaxis_title="Rating",
-                      height=600)
-    return fig
-
-
-def predict_win_rate(elo_ratings, SCALE=400, BASE=10, INIT_RATING=1000):
-    names = sorted(list(elo_ratings.keys()))
-    wins = defaultdict(lambda: defaultdict(lambda: 0))
-    for a in names:
-        for b in names:
-            ea = 1 / (1 + BASE ** ((elo_ratings[b] - elo_ratings[a]) / SCALE))
-            wins[a][b] = ea
-            wins[b][a] = 1 - ea
-
-    data = {
-        a: [wins[a][b] if a != b else np.NAN for b in names]
-        for a in names
-    }
-
-    df = pd.DataFrame(data, index=names)
-    df.index.name = "model_a"
-    df.columns.name = "model_b"
-    return df.T
-
-
-def get_win_rate_column(df, column, baseline="gpt-4-0314"):
-    to_dict = df[["model", column]].set_index("model").to_dict()[column]
-    win_rate_table = predict_win_rate(to_dict)
-    return win_rate_table[baseline].fillna(0.5).apply(lambda x: round(x * 100, 2))
-
-
-def get_battles_from_row(row, first_game_only, multiplier, baseline_model):
+def get_battles_from_row(row, first_game_only, multiplier, baseline_model, metadata=None):
     results = []
     output = {"question_id": row["question_id"],
               "model_a": baseline_model,
@@ -135,6 +44,19 @@ def get_battles_from_row(row, first_game_only, multiplier, baseline_model):
         weight = multiplier
     else:
         weight = 0
+    
+    # add conv_metadata for style control
+    if metadata:
+        output["conv_metadata"] = {
+            "sum_assistant_a_tokens": metadata[baseline_model][row["question_id"]]["conv_metadata"]["token_len"],
+            "sum_assistant_b_tokens": metadata[row["model"]][row["question_id"]]["conv_metadata"]["token_len"],
+            "header_count_a": metadata[baseline_model][row["question_id"]]["conv_metadata"]["header_count"],
+            "header_count_b": metadata[row["model"]][row["question_id"]]["conv_metadata"]["header_count"],
+            "list_count_a": metadata[baseline_model][row["question_id"]]["conv_metadata"]["list_count"],
+            "list_count_b": metadata[row["model"]][row["question_id"]]["conv_metadata"]["list_count"],
+            "bold_count_a": metadata[baseline_model][row["question_id"]]["conv_metadata"]["bold_count"],
+            "bold_count_b": metadata[row["model"]][row["question_id"]]["conv_metadata"]["bold_count"],
+        }
 
     if weight:
         results += [output] * weight
@@ -164,6 +86,18 @@ def get_battles_from_row(row, first_game_only, multiplier, baseline_model):
         weight = multiplier
     else:
         weight = 0
+    
+    if metadata:
+        output["conv_metadata"] = {
+            "sum_assistant_a_tokens": metadata[baseline_model][row["question_id"]]["conv_metadata"]["token_len"],
+            "sum_assistant_b_tokens": metadata[row["model"]][row["question_id"]]["conv_metadata"]["token_len"],
+            "header_count_a": metadata[baseline_model][row["question_id"]]["conv_metadata"]["header_count"],
+            "header_count_b": metadata[row["model"]][row["question_id"]]["conv_metadata"]["header_count"],
+            "list_count_a": metadata[baseline_model][row["question_id"]]["conv_metadata"]["list_count"],
+            "list_count_b": metadata[row["model"]][row["question_id"]]["conv_metadata"]["list_count"],
+            "bold_count_a": metadata[baseline_model][row["question_id"]]["conv_metadata"]["bold_count"],
+            "bold_count_b": metadata[row["model"]][row["question_id"]]["conv_metadata"]["bold_count"],
+        }
 
     if weight:
         results += [output] * weight
@@ -171,16 +105,32 @@ def get_battles_from_row(row, first_game_only, multiplier, baseline_model):
     return results
 
 
-def get_battles_from_judgment(bench_name, judge_name, first_game_only=False, multiplier=3, baseline_model="gpt-4-0314"):
+def get_battles_from_judgment(bench_name, 
+                              judge_name, 
+                              first_game_only=False, 
+                              multiplier=3, 
+                              baseline_model="gpt-4-0314",
+                              style_control=True):
     print("Turning judgment results into battles...")
 
-    directory = f"data/{bench_name}/model_judgment/{judge_name}"
-    assert os.path.exists(directory)
+    judge_dir = f"data/{bench_name}/model_judgment/{judge_name}"
+    assert os.path.exists(judge_dir)
+    judgments = pd.concat([pd.read_json(file, lines=True) for file in tqdm(glob(f"{judge_dir}/*jsonl"))])
     
-    judgments = pd.concat([pd.read_json(file, lines=True) for file in tqdm(glob(f"{directory}/*jsonl"))])
-    battles = judgments.apply(lambda row: get_battles_from_row(row, first_game_only, multiplier, baseline_model), axis=1)
+    metadata = None
+    if style_control:
+        ans_dir = f"data/{bench_name}/model_answer"
+        assert os.path.exists(ans_dir)
+        
+        metadata = {}
+        for file in tqdm(glob(f"{ans_dir}/*.jsonl")):
+            df = pd.read_json(file, lines=True)
+            assert "conv_metadata" in df.columns, "You must have conv_metadata attributes in your model answer to apply style contro. Please pull newest data if needed."
+            metadata[df.model_id[0]] = df[["question_id", "conv_metadata"]].set_index("question_id").to_dict("index")
+    
+    battles = judgments.apply(lambda row: get_battles_from_row(row, first_game_only, multiplier, baseline_model, metadata), axis=1)
     battles = pd.DataFrame(battles[battles.map(len) > 0].explode().tolist())
-    battles.to_json("data/arena_hard_battles.jsonl", lines=True, orient="records")
+    battles.to_json("data/arena_hard_battles.jsonl", orient="records", lines=True)
     return battles
 
 
@@ -189,47 +139,75 @@ if __name__ == "__main__":
     parser.add_argument("--bench-name", type=str, default="arena-hard-v0.1")
     parser.add_argument("--judge-name", type=str, default="gpt-4-1106-preview")
     parser.add_argument("--baseline", type=str, default="gpt-4-0314")
-    parser.add_argument("--load-battles", action="store_true")
     parser.add_argument("--load-bootstrap", action="store_true")
     parser.add_argument("--show-elo", action="store_true")
     parser.add_argument("--weight", type=int, default=3)
     parser.add_argument("--num-rounds", type=int, default=100)
     parser.add_argument("--output", action="store_true")
     parser.add_argument("--first-game-only", action="store_true")
+    parser.add_argument("--style-control", action="store_true")
+    parser.add_argument("--length-control-only", action="store_true")
+    parser.add_argument("--markdown-control-only", action="store_true")
     args = parser.parse_args()
     print(args)
     assert not args.load_bootstrap or (args.load_battles and args.load_bootstrap), "If loading prexisting bootstrapping data, you must also load preexisting battles."
+    assert sum([args.style_control, args.length_control_only, args.markdown_control_only]) < 2, "You can only control one of the three: length, markdown, or both style."
 
     answer_dir = os.path.join("data", args.bench_name, "model_answer")
     model_answers = load_model_answers(answer_dir)
     
-    if args.load_battles:
-        assert os.path.exists("data/arena_hard_battles.jsonl")
-        battles = pd.read_json("data/arena_hard_battles.jsonl", lines=True)
+    battles = get_battles_from_judgment(args.bench_name, 
+                                        args.judge_name, 
+                                        args.first_game_only, 
+                                        args.weight, 
+                                        args.baseline)
+    
+    if args.style_control:
+        X, Y, models = construct_style_matrices(battles)
+        bt_model_coef, style_coef = fit_bt(X, Y, models, baseline_model=args.baseline)
+        bootstrap_model_coef, _ = get_bootstrap_result_style_control(X, Y, battles, models, 
+                                                                     fit_bt, 
+                                                                     num_round=args.num_rounds, 
+                                                                     baseline_model=args.baseline)
+        display_coefs = {STYLE_CONTROL_ELEMENTS[i]: round(style_coef[i], 3) for i in range(len(STYLE_CONTROL_ELEMENTS) // 2)}
+        print(f"Style Coefficients: {display_coefs}")
+    elif args.length_control_only:
+        X, Y, models = construct_style_matrices(battles, 
+                                                apply_ratio=[1], 
+                                                style_elements=LENGTH_CONTROL_ELEMENTS)
+        bt_model_coef, style_coef = fit_bt(X, Y, models, baseline_model=args.baseline)
+        bootstrap_model_coef, _ = get_bootstrap_result_style_control(X, Y, battles, models, 
+                                                                     fit_bt, 
+                                                                     num_round=args.num_rounds, 
+                                                                     baseline_model=args.baseline)
+        display_coefs = {LENGTH_CONTROL_ELEMENTS[i]: round(style_coef[i], 3) for i in range(len(LENGTH_CONTROL_ELEMENTS) // 2)}
+        print(f"Style Coefficients: {display_coefs}")
+    elif args.markdown_control_only:
+        X, Y, models = construct_style_matrices(battles, 
+                                                apply_ratio=[1, 1, 1], 
+                                                style_elements=MARKDOWN_CONTROL_ELEMENTS)
+        bt_model_coef, style_coef = fit_bt(X, Y, models, baseline_model=args.baseline)
+        bootstrap_model_coef, _ = get_bootstrap_result_style_control(X, Y, battles, models, 
+                                                                     fit_bt, 
+                                                                     num_round=args.num_rounds, 
+                                                                     baseline_model=args.baseline)
+        display_coefs = {MARKDOWN_CONTROL_ELEMENTS[i]: round(style_coef[i], 3) for i in range(len(MARKDOWN_CONTROL_ELEMENTS) // 2)}
+        print(f"Style Coefficients: {display_coefs}")
     else:
-        battles = get_battles_from_judgment(args.bench_name, args.judge_name, args.first_game_only, args.weight, args.baseline)
-        
-    bootstrap_online_elo = compute_mle_elo(battles, baseline_model=args.baseline)
-
-
-    if args.load_bootstrap:
-        bootstrap_elo_lu = pd.read_json("data/bootstrapping_results.jsonl", lines=True)
-    else:
-        np.random.seed(42)
-        bootstrap_elo_lu = get_bootstrap_result(battles, compute_mle_elo, args.num_rounds, args.baseline)
-        bootstrap_elo_lu.to_json("data/bootstrapping_results.jsonl", lines=True, orient="records")
+        bt_model_coef = compute_mle_elo(battles, baseline_model=args.baseline)
+        bootstrap_model_coef = get_bootstrap_result(battles, compute_mle_elo, args.num_rounds, args.baseline)
 
     stats = pd.DataFrame()
     stats["results"] = None
     stats["results"] = stats['results'].astype('object')
 
-    for i, model in enumerate(bootstrap_online_elo.index):
-        assert model in bootstrap_elo_lu.columns
+    for i, model in enumerate(bt_model_coef.index):
+        assert model in bootstrap_model_coef.columns
 
         stats.at[i, "model"] = model
-        stats.at[i, "score"] = bootstrap_online_elo[model]
-        stats.at[i, "lower"] = np.percentile(bootstrap_elo_lu[model], 2.5)
-        stats.at[i, "upper"] = np.percentile(bootstrap_elo_lu[model], 97.5)
+        stats.at[i, "score"] = bt_model_coef[model]
+        stats.at[i, "lower"] = np.percentile(bootstrap_model_coef[model], 2.5)
+        stats.at[i, "upper"] = np.percentile(bootstrap_model_coef[model], 97.5)
 
         length = 0
         if model in model_answers:
@@ -239,7 +217,7 @@ if __name__ == "__main__":
             length /= len(model_answers[model])
 
         stats.at[i, "avg_tokens"] = int(length)
-        stats.at[i, "results"] = bootstrap_elo_lu[model].tolist()
+        stats.at[i, "results"] = bootstrap_model_coef[model].tolist()
     
     if not args.show_elo:
         stats.sort_values(by="model", inplace=True)
@@ -256,6 +234,7 @@ if __name__ == "__main__":
         interval = str((round(row['lower'] - row['score'], decimal), round(row['upper'] - row['score'], decimal)))
         print(f"{row['model'] : <30} | score: {round(row['score'], decimal) : ^5} | 95% CI: {interval : ^12} | average #tokens: {int(row['avg_tokens'])}")
 
+    # If outputting leaderboard to a csv file.
     if args.output:
         cur_date = datetime.datetime.now()
         date_str = cur_date.strftime("%Y%m%d")

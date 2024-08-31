@@ -1,4 +1,7 @@
 # Arena-Hard-Auto
+
+> 🚨 New feature (08/31): **Style Control** is now added to Arena Hard Auto! Check this [section](#style-control) to start using style control!
+
 Arena-Hard-Auto-v0.1 ([See Paper](https://arxiv.org/abs/2406.11939)) is an automatic evaluation tool for instruction-tuned LLMs. It contains 500 challenging user queries. We prompt GPT-4-Turbo as judge to compare the models' responses against a baseline model (default: GPT-4-0314). Notably, Arena-Hard-Auto has the highest correlation and separability to Chatbot Arena among popular open-ended LLM benchmarks ([See Paper](https://arxiv.org/abs/2406.11939)). If you are curious to see how well your model might perform on Chatbot Arena, we recommend trying Arena-Hard-Auto.
 
 Although both Arena-Hard-Auto and Chatbot Arena Category Hard ([See Blog](https://lmsys.org/blog/2024-05-17-category-hard/)) employ similar pipeline to select hard prompts, Arena-Hard-Auto employs automatic judge as a cheaper and faster approximator to human preference. Checkout [BenchBuilder](BenchBuilder) folder for code and resources on how we curate Arena-Hard-Auto.
@@ -179,6 +182,26 @@ You can review individual judgment results using our UI code.
 ```console
 > python qa_browser.py --share
 ```
+
+## Style Control
+Following the newly introduced Style Control on Chatbot Arena, we release Style Control on Arena Hard Auto! We employ the same Style Control methods as proposed in the [blogpost](https://lmsys.org/blog/2024-08-28-style-control/). Please refer to the blogpost for methodology and technical background.
+
+Before applying style control, make sure your model answers has proper style attribute generated. Either pull the latest data from [huggingface repo](https://huggingface.co/spaces/lmsys/arena-hard-browser), or run the following script!
+
+To add style attribute to your model answers, use `add_markdown_info.py`. The following command takes model answers from `--dir`, append style attributes (token length, number of headers, etc), and save the new answers in `--output-dir`.
+
+```console
+> python add_markdown_info.py --dir data/arena-hard-v0.1/model_answer --output-dir data/arena-hard-v0.1/model_answer
+```
+
+To control for style (token length and markdown elements), use `--style-control` when running `show_result.py`.
+
+```console
+> python show_result.py --style-control
+```
+
+To control for length and markdown separately, use `--length-control-only` and `--markdown-control-only`.
+
 
 ## Community Contribution
 Coming soon...
