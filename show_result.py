@@ -161,7 +161,7 @@ if __name__ == "__main__":
                                         args.first_game_only, 
                                         args.weight, 
                                         args.baseline,
-                                        args.style_control)
+                                        args.style_control or args.length_control_only or args.markdown_control_only)
     
     if args.style_control:
         X, Y, models = construct_style_matrices(battles)
