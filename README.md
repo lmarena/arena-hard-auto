@@ -6,7 +6,7 @@ Arena-Hard-Auto-v0.1 ([See Paper](https://arxiv.org/abs/2406.11939)) is an autom
 
 Although both Arena-Hard-Auto and Chatbot Arena Category Hard ([See Blog](https://lmsys.org/blog/2024-05-17-category-hard/)) employ similar pipeline to select hard prompts, Arena-Hard-Auto employs automatic judge as a cheaper and faster approximator to human preference. Checkout [BenchBuilder](BenchBuilder) folder for code and resources on how we curate Arena-Hard-Auto.
 
-## Full Leaderboard (Updated: 08/09)
+## Full Leaderboard (Updated: 08/31)
 ```console
 claude-3-5-sonnet-20240620     | score: 79.3  | 95% CI: (-2.1, 2.0)  | average #tokens: 567
 gpt-4o-2024-05-13              | score: 79.2  | 95% CI: (-1.9, 1.7)  | average #tokens: 696        
@@ -16,7 +16,7 @@ athene-70b                     | score: 77.6  | 95% CI: (-2.7, 2.2)  | average #
 gpt-4o-mini                    | score: 74.9  | 95% CI: (-2.5, 1.9)  | average #tokens: 668
 gemini-1.5-pro-api-preview     | score: 72.0  | 95% CI: (-2.1, 2.5)  | average #tokens: 676
 mistral-large-2407             | score: 70.4  | 95% CI: (-1.6, 2.1)  | average #tokens: 623
-llama-3.1-405b-instruct        | score: 64.1  | 95% CI: (-2.2, 2.9)  | average #tokens: 633
+llama-3.1-405b-instruct        | score: 69.3  | 95% CI: (-2.4, 2.2)  | average #tokens: 658
 glm-4-0520                     | score: 63.8  | 95% CI: (-2.9, 2.8)  | average #tokens: 636          
 yi-large                       | score: 63.7  | 95% CI: (-2.6, 2.4)  | average #tokens: 626
 deepseek-coder-v2              | score: 62.3  | 95% CI: (-2.1, 1.8)  | average #tokens: 578             

@@ -110,7 +110,7 @@ def get_battles_from_judgment(bench_name,
                               first_game_only=False, 
                               multiplier=3, 
                               baseline_model="gpt-4-0314",
-                              style_control=True):
+                              style_control=False):
     print("Turning judgment results into battles...")
 
     judge_dir = f"data/{bench_name}/model_judgment/{judge_name}"
@@ -160,7 +160,8 @@ if __name__ == "__main__":
                                         args.judge_name, 
                                         args.first_game_only, 
                                         args.weight, 
-                                        args.baseline)
+                                        args.baseline,
+                                        args.style_control)
     
     if args.style_control:
         X, Y, models = construct_style_matrices(battles)
@@ -213,7 +214,10 @@ if __name__ == "__main__":
         if model in model_answers:
             for _, row in model_answers[model].items():
                 turn = row["choices"][0]["turns"][0]
-                length += turn["token_len"]
+                if "token_len" in turn:
+                    length += turn["token_len"]
+                else:
+                    length += row["conv_metadata"]["token_len"]
             length /= len(model_answers[model])
 
         stats.at[i, "avg_tokens"] = int(length)
