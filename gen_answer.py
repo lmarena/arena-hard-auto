@@ -6,6 +6,7 @@ python gen_api_answer --parallel 32
 import argparse
 import json
 import os
+import re
 import time
 import concurrent.futures
 
@@ -13,6 +14,7 @@ import tiktoken
 import shortuuid
 import tqdm
 
+from add_markdown_info import count_markdown_elements, remove_pattern
 from utils import (
     load_questions,
     load_model_answers,
@@ -85,9 +87,9 @@ def get_answer(
                                                 api_dict=api_dict)
             conv.append({"role": "assistant", "content": output})
 
-            turns.append({"content": output, "token_len": len(encoding.encode(output, disallowed_special=()))})
+            turns.append({"content": output})
         choices.append({"index": i, "turns": turns})
-
+    
     # Dump answers
     ans = {
         "question_id": question["question_id"],
@@ -96,6 +98,13 @@ def get_answer(
         "choices": choices,
         "tstamp": time.time(),
     }
+    
+    if len(choices) == len(turns) == 1:
+        metadata = {"token_len": len(encoding.encode(output, 
+                                                     disallowed_special=()))}
+        ans["conv_metadata"] = metadata | count_markdown_elements(remove_pattern(output, 
+                                                                     re.compile("```([^`]*)```")),
+                                                                 suffix="")
 
     os.makedirs(os.path.dirname(answer_file), exist_ok=True)
     with open(answer_file, "a") as fout:
