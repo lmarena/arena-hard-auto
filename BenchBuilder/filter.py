@@ -31,7 +31,9 @@ def calculate_cluster_scores(conversations: List[Dict], clusters: List[int]) -> 
             cluster_scores[cluster] = []
         cluster_scores[cluster].append(score)
     
-    return {cluster: np.mean(scores) for cluster, scores in cluster_scores.items()}
+    cluster_to_mean_score = {cluster: np.mean(scores) for cluster, scores in cluster_scores.items()}
+    print(f"Cluster to mean score: {cluster_to_mean_score}")
+    return cluster_to_mean_score
 
 def filter_prompts(conversations: List[Dict], clusters: List[int], prompt_threshold: int, cluster_threshold: float) -> List[Dict]:
     cluster_scores = calculate_cluster_scores(conversations, clusters)
