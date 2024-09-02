@@ -3,6 +3,7 @@ import json
 import argparse
 import os
 
+import spacy.cli
 import torch
 from tqdm import tqdm
 
@@ -43,7 +44,13 @@ def run(args):
             conv = ""
             for turns in row["conversation_a"]:
                 if turns["role"] == "user":
-                    conv += f"{turns['content']}\n"
+                    content = turns["content"]
+                    if isinstance(content, list):
+                        conv += f"{content[0]}\n"
+                    elif isinstance(content, str):
+                        conv += f"{content}\n"
+                    else:
+                        raise ValueError(f"Unknown content type: {type(content)}")
             
             conv = conv.replace("<|endoftext|>", "<| endoftext |>")
             if len(conv) <= 32:
@@ -71,7 +78,11 @@ def run(args):
     print("#convos:", len(convs))
         
     # Part-of-Speech
-    pos_model = PartOfSpeech("en_core_web_sm")
+    try:
+        pos_model = PartOfSpeech("en_core_web_sm")
+    except:
+        spacy.cli.download("en_core_web_sm")
+        pos_model = PartOfSpeech("en_core_web_sm")
     # GPT
     tokenizer= tiktoken.encoding_for_model("gpt-4o-mini")
 

@@ -9,6 +9,7 @@ import yaml
 import random
 import threading
 import orjson
+from typing import List, Dict
 
 from category import Category
 
@@ -208,6 +209,21 @@ def find_required_tasks(row):
         )
     ]
 
+def _get_prompt(convo: List[Dict]):
+    prompt = ""
+    for i in range(0, len(convo), 2):
+        if isinstance(convo[i]['content'], str):
+            prompt += f"{convo[i]['content']}\n"
+        else:
+            prompt += f"{convo[i]['content'][0]}\n"
+    return prompt
+
+def _get_uid(row: pd.Series):
+    if "question_id" in row.index and "tstamp" in row.index:
+        return str(row["question_id"]) + str(row["tstamp"])
+    else:
+        return str(row.name)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -239,7 +255,7 @@ if __name__ == "__main__":
     input_data = pd.DataFrame(data)
 
     # much faster than pd.apply
-    input_data["uid"] = input_data.question_id.map(str) + input_data.tstamp.map(str)
+    input_data["uid"] = input_data.apply(_get_uid, axis=1)
     assert len(input_data) == len(input_data.uid.unique())
     print(f"{len(input_data)}# of input data just loaded")
 
@@ -263,9 +279,7 @@ if __name__ == "__main__":
     if os.path.isfile(config["output_file"]):
         print("loading existing output")
         output_data = pd.read_json(config["output_file"], lines=True)
-        output_data["uid"] = output_data.question_id.map(str) + output_data.tstamp.map(
-            str
-        )
+        output_data["uid"] = output_data.apply(_get_uid, axis=1)
         assert len(output_data) == len(output_data.uid.unique())
 
         print(f"{len(output_data)}# of existing output just loaded")
@@ -290,9 +304,7 @@ if __name__ == "__main__":
             f"{name}: {len(not_labeled[not_labeled.required_tasks.map(lambda tasks: name in tasks)])}"
         )
 
-    not_labeled["prompt"] = not_labeled.conversation_a.map(
-        lambda convo: "\n".join([convo[i]["content"] for i in range(0, len(convo), 2)])
-    )
+    not_labeled["prompt"] = not_labeled.conversation_a.map(_get_prompt)
     not_labeled["prompt"] = not_labeled.prompt.map(lambda x: x[:12500])
 
     with concurrent.futures.ThreadPoolExecutor(
@@ -327,14 +339,14 @@ if __name__ == "__main__":
         merge_columns = [category.name_tag for category in categories]
         print(f"Columns to be merged:\n{merge_columns}")
 
-        input_data["uid"] = input_data.question_id.map(str) + input_data.tstamp.map(str)
+        input_data["uid"] = input_data.apply(_get_uid, axis=1)
         assert len(input_data) == len(input_data.uid.unique())
 
         # fastest way to merge
         assert os.path.isfile(config["output_file"])
         print("reading output file...")
         temp = pd.read_json(config["output_file"], lines=True)
-        temp["uid"] = temp.question_id.map(str) + temp.tstamp.map(str)
+        temp["uid"] = temp.apply(_get_uid, axis=1)
         assert len(temp) == len(temp.uid.unique())
 
         assert "category_tag" in temp.columns
