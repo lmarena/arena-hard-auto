@@ -1,6 +1,7 @@
 """
 Filter prompts based on scores and cluster thresholds. To be run after topic_clustering.py and label.py
 """
+import os
 
 import orjson
 import json
@@ -50,19 +51,28 @@ def filter_prompts(conversations: List[Dict], clusters: List[int], prompt_thresh
     
     return filtered_prompts
 
-def to_wandb_table(conversations: List[Dict]) -> wandb.Table:
+def to_wandb_table(conversations: List[Dict], image_dir: str) -> wandb.Table:
     data = []
     columns = ["post_processed_question", "image", "prompt_score"]
     for conv in conversations:
         # conv["conversation_a"][0] is the first turn of the conversation 
         # conv["conversation_a"][0]["content"][1][0] is indexing to the first index of the images
-        data.append([conv["post_process_conv"], conv["conversation_a"][0]["content"][1][0], conv["prompt_score"]])
+        image_hash = conv["conversation_a"][0]["content"][1][0]
+        image_path = os.path.join(image_dir, f"{image_hash}.png")
+        wandb_image = image_path
+        try: 
+            wandb_image = wandb.Image(image_path)
+            data.append([conv["post_process_conv"], wandb_image, conv["prompt_score"]])
+        except FileNotFoundError as e:
+            print(f"File not found: {image_path}")
+            
     return wandb.Table(data=data, columns=columns)
 
 def main():
     parser = argparse.ArgumentParser(description='Filter prompts based on scores and cluster thresholds.')
     parser.add_argument('--conversations_file', type=str, help='Path to the JSONL file containing conversations')
     parser.add_argument('--clusters_file', type=str, help='Path to the JSON file containing cluster assignments')
+    parser.add_argument("--image_dir", type=str, help="Path to the directory containing images")
     parser.add_argument('--prompt_threshold', type=int, default=5, help='Minimum score threshold for individual prompts')
     parser.add_argument('--cluster_threshold', type=int, default=3, help='Minimum average score threshold for clusters')
     parser.add_argument('--output_file', type=str, default='filtered_prompts.json', help='Path to save the filtered prompts')
@@ -85,7 +95,7 @@ def main():
     print(f"Results saved to {args.output_file}")
 
     if args.wandb_project:
-        wandb.log({"filtered_prompts": to_wandb_table(filtered_prompts)})
+        wandb.log({"filtered_prompts": to_wandb_table(filtered_prompts, args.image_dir)})
 
 if __name__ == "__main__":
     main()
