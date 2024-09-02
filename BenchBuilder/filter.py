@@ -7,6 +7,7 @@ import json
 import argparse
 from typing import List, Dict
 import numpy as np
+import wandb
 
 def load_json(file_path: str) -> List[Dict]:
     with open(file_path, 'rb') as f:
@@ -42,9 +43,21 @@ def filter_prompts(conversations: List[Dict], clusters: List[int], prompt_thresh
     for conv, cluster in zip(conversations, clusters):
         score = calculate_score(conv)
         if score >= prompt_threshold and cluster_scores[cluster] >= cluster_threshold:
+            conv.update({
+                "prompt_score": score,
+            })
             filtered_prompts.append(conv)
     
     return filtered_prompts
+
+def to_wandb_table(conversations: List[Dict]) -> wandb.Table:
+    data = []
+    columns = ["post_processed_question", "image", "prompt_score"]
+    for conv in conversations:
+        # conv["conversation_a"][0] is the first turn of the conversation 
+        # conv["conversation_a"][0]["content"][1][0] is indexing to the first index of the images
+        data.append([conv["post_process_conv"], conv["conversation_a"][0]["content"][1][0], conv["prompt_score"]])
+    return wandb.Table(data=data, columns=columns)
 
 def main():
     parser = argparse.ArgumentParser(description='Filter prompts based on scores and cluster thresholds.')
@@ -53,8 +66,12 @@ def main():
     parser.add_argument('--prompt_threshold', type=int, default=5, help='Minimum score threshold for individual prompts')
     parser.add_argument('--cluster_threshold', type=int, default=3, help='Minimum average score threshold for clusters')
     parser.add_argument('--output_file', type=str, default='filtered_prompts.json', help='Path to save the filtered prompts')
+    parser.add_argument('--wandb_project', type=str, default='arena-hard-auto', help='Wandb project name')
     
     args = parser.parse_args()
+
+    if args.wandb_project:
+        wandb.init(project=args.wandb_project)
     
     conversations = load_jsonl(args.conversations_file)
     clusters = load_json(args.clusters_file)
@@ -66,6 +83,9 @@ def main():
     
     print(f"Filtered {len(filtered_prompts)} prompts out of {len(conversations)} total.")
     print(f"Results saved to {args.output_file}")
+
+    if args.wandb_project:
+        wandb.log({"filtered_prompts": to_wandb_table(filtered_prompts)})
 
 if __name__ == "__main__":
     main()
