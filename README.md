@@ -16,7 +16,7 @@ athene-70b                     | score: 77.6  | 95% CI: (-2.7, 2.2)  | average #
 gpt-4o-mini                    | score: 74.9  | 95% CI: (-2.5, 1.9)  | average #tokens: 668
 gemini-1.5-pro-api-preview     | score: 72.0  | 95% CI: (-2.1, 2.5)  | average #tokens: 676
 mistral-large-2407             | score: 70.4  | 95% CI: (-1.6, 2.1)  | average #tokens: 623
-llama-3.1-405b-instruct        | score: 69.3  | 95% CI: (-2.4, 2.2)  | average #tokens: 658
+llama-3.1-405b-instruct-fp8    | score: 69.3  | 95% CI: (-2.4, 2.2)  | average #tokens: 658
 glm-4-0520                     | score: 63.8  | 95% CI: (-2.9, 2.8)  | average #tokens: 636          
 yi-large                       | score: 63.7  | 95% CI: (-2.6, 2.4)  | average #tokens: 626
 deepseek-coder-v2              | score: 62.3  | 95% CI: (-2.1, 1.8)  | average #tokens: 578             
