@@ -7,6 +7,7 @@
 #     api_type: str
 #     tokenizer: str optional (to optimize token limits)
 #     parallel: int
+#     system_prompt: str optional (add system instruction when generating model answer)
 
 gpt-3.5-turbo-0125:
     model_name: gpt-3.5-turbo-0125
