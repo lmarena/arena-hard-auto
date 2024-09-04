@@ -15,7 +15,7 @@ import shortuuid
 import tqdm
 
 from add_markdown_info import count_markdown_elements, remove_pattern
-from config.configs import GenAnswerConfig, EndpointInfo, EndpointConfig
+from config.configs import GenAnswerConfig, EndpointInfo, EndpointsConfig
 from utils import (
     load_questions,
     load_model_answers,
@@ -41,7 +41,7 @@ def get_answer(
     if question["category"] in temperature_config:
         temperature = temperature_config[question["category"]]
 
-    api_type = endpoint_info["api_type"]
+    api_type = endpoint_info.api_type
 
     conv = []
 
@@ -127,10 +127,16 @@ if __name__ == "__main__":
     parser.add_argument(
         "--endpoint-file", type=str, default="config/api_config.yaml"
     )
+    parser.add_argument(
+        "--question-file", type=str, default="", help="Path to the question file that model answers to",
+    )
+    parser.add_argument(
+        "--answers-base-dir", type=str, default = "", help="Output path that stores the model's answers",
+    )
     args = parser.parse_args()
 
-    settings = GenAnswerConfig(**make_config(args.setting_file))
-    endpoints_config = EndpointsConfig(**make_config(args.endpoint_file))
+    settings = GenAnswerConfig.from_dict(make_config(args.setting_file))
+    endpoints_config = EndpointsConfig.from_dict(make_config(args.endpoint_file))
 
     existing_answer = load_model_answers(os.path.join("data", settings.bench_name, "model_answer"))
     
@@ -141,10 +147,16 @@ if __name__ == "__main__":
         assert model in endpoints_config.endpoints
         endpoint_info = endpoints_config.endpoints[model]
 
-        question_file = os.path.join("data", settings.bench_name, "question.jsonl")
+        if not args.question_file:
+            question_file = os.path.join("data", settings.bench_name, "question.jsonl")
+        else:
+            question_file = args.question_file
         questions = load_questions(question_file)
 
-        answer_file = os.path.join("data", settings.bench_name, "model_answer", f"{model}.jsonl")
+        if not args.answers_base_dir:
+            answer_file = os.path.join("data", settings.bench_name, "model_answer", f"{model}.jsonl")
+        else:
+            answer_file = os.path.join(args.answers_base_dir, f"{model}.jsonl")
         print(f"Output to {answer_file}")
 
         if endpoint_info.parallel:

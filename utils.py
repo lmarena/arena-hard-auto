@@ -1,9 +1,11 @@
+import base64
 import os
 import json
 import time
 import yaml
 import random
 import requests
+from typing import List, Dict, Tuple, Union
 
 from typing import Optional
 from glob import glob
@@ -327,7 +329,7 @@ def encode_image(image_path):
 def _content_to_openai_format(content: Union[str, Tuple[str, List[Dict[str, str]]]], images_base_dir: str) -> Union[str, List[Dict[str, str]]]:
     if isinstance(content, str):
         return content
-    elif isinstance(content, tuple):
+    elif isinstance(content, list):
         content_in_openai_format = []
         text, images = content
         content_in_openai_format.append({"type": "text", "text": text})
@@ -336,7 +338,6 @@ def _content_to_openai_format(content: Union[str, Tuple[str, List[Dict[str, str]
             image_base64_str = encode_image(image_path)
             content_in_openai_format.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_base64_str}"}})
         return content_in_openai_format
-
     else:
         raise ValueError(f"Unknown content type: {type(content)}")
 
