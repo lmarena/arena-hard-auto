@@ -32,6 +32,11 @@ python label.py --config config.yaml
 ```
 Make sure to properly configure your `config.yaml` before begin labeling.
 
+To filter prompts based on scores and cluster thresholds:
+```console
+python filter.py --conversations_file [your jsonl file] --clusters_file [your json file] --prompt_threshold 6 --cluster_threshold 3
+```
+
 We also employ BenchBuilder on [allenai/WildChat-1M](https://huggingface.co/datasets/allenai/WildChat-1M) and produce 250 high-quality prompts, Wild-Hard-250. We evaluate 10 of the 20 models outlined in the paper on Wild-Hard-250 and a random sample of 250 prompts from Wild-Chat dataset using GPT-4-Turbo as judge.
 
 |    | Wild-Hard-250 | Wild-Chat-Random
