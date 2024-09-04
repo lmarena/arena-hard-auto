@@ -209,14 +209,11 @@ Coming soon...
 ## Citation
 The code in this repository is mostly developed for or derived from the papers below. Please cite it if you find the repository helpful.
 ```
-@misc{li2024crowdsourceddatahighqualitybenchmarks,
-      title={From Crowdsourced Data to High-Quality Benchmarks: Arena-Hard and BenchBuilder Pipeline}, 
-      author={Tianle Li and Wei-Lin Chiang and Evan Frick and Lisa Dunlap and Tianhao Wu and Banghua Zhu and Joseph E. Gonzalez and Ion Stoica},
-      year={2024},
-      eprint={2406.11939},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2406.11939}, 
+@article{li2024crowdsourced,
+  title={From Crowdsourced Data to High-Quality Benchmarks: Arena-Hard and BenchBuilder Pipeline},
+  author={Li, Tianle and Chiang, Wei-Lin and Frick, Evan and Dunlap, Lisa and Wu, Tianhao and Zhu, Banghua and Gonzalez, Joseph E and Stoica, Ion},
+  journal={arXiv preprint arXiv:2406.11939},
+  year={2024}
 }
 @misc{chiang2024chatbot,
     title={Chatbot Arena: An Open Platform for Evaluating LLMs by Human Preference},
