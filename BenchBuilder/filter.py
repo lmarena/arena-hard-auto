@@ -70,7 +70,7 @@ def to_arena_hard_questions_format(conversations: List[Dict], clusters: List[int
     arena_hard_questions = []
     for i, (conv, cluster) in enumerate(zip(conversations, clusters)):
         turns_list = []
-        turns_list.append({"content": conv["conversation_a"][0]["content"][0]})
+        turns_list.append({"content": conv["conversation_a"][0]["content"]})
 
         arena_hard_questions.append({
             "question_id": f"{i}",
