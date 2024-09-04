@@ -15,11 +15,13 @@ import shortuuid
 import tqdm
 
 from add_markdown_info import count_markdown_elements, remove_pattern
+from config.configs import GenAnswerConfig, EndpointInfo, EndpointList
 from utils import (
     load_questions,
     load_model_answers,
     make_config,
     get_endpoint,
+    chat_completion_litellm,
     chat_completion_openai,
     chat_completion_anthropic,
     chat_completion_openai_azure,
@@ -29,11 +31,12 @@ from utils import (
     reorg_answer_file,
     OPENAI_MODEL_LIST,
     temperature_config,
+    _content_to_openai_format
 )
 
 
 def get_answer(
-    question: dict, model: str, endpoint_info: dict, num_choices: int, max_tokens: int, temperature: float, answer_file: str, api_dict: dict
+    question: dict, model: str, endpoint_info: EndpointInfo, num_choices: int, max_tokens: int, temperature: float, answer_file: str, api_dict: dict, images_base_dir: str
 ):
     if question["category"] in temperature_config:
         temperature = temperature_config[question["category"]]
@@ -42,8 +45,8 @@ def get_answer(
 
     conv = []
 
-    if "system_prompt" in endpoint_info.keys():
-        conv.append({"role": "system", "content": endpoint_info["system_prompt"]})
+    if endpoint_info.system_prompt:
+        conv.append({"role": "system", "content": endpoint_info.system_prompt})
     elif model in OPENAI_MODEL_LIST:
         conv.append({"role": "system", "content": "You are a helpful assistant."})
 
@@ -52,35 +55,40 @@ def get_answer(
     for i in range(num_choices):
         turns = []
         for j in range(len(question["turns"])):
-            conv.append({"role": "user", "content": question["turns"][j]["content"]})
+            conv.append({"role": "user", "content": _content_to_openai_format(question["turns"][j]["content"], images_base_dir)})
             if api_type == "anthropic":
-                output = chat_completion_anthropic(model=endpoint_info["model_name"],
+                output = chat_completion_anthropic(model=endpoint_info.model_name,
                                                    messages=conv,
                                                    temperature=temperature,
                                                    max_tokens=max_tokens)
             elif api_type == "mistral":
-                output = chat_completion_mistral(model=endpoint_info["model_name"],
+                output = chat_completion_mistral(model=endpoint_info.model_name,
                                                  messages=conv,
                                                  temperature=temperature,
                                                  max_tokens=max_tokens)
             elif api_type == "gemini":
-                output = http_completion_gemini(model=endpoint_info["model_name"],
+                output = http_completion_gemini(model=endpoint_info.model_name,
                                                 message=question["turns"][j]["content"],
                                                 temperature=temperature,
                                                 max_tokens=max_tokens)
             elif api_type == "azure":
-                output = chat_completion_openai_azure(model=endpoint_info["model_name"],
+                output = chat_completion_openai_azure(model=endpoint_info.model_name,
                                                       messages=conv,
                                                       temperature=temperature,
                                                       max_tokens=max_tokens,
                                                       api_dict=api_dict)
             elif api_type == "cohere":
-                output = chat_completion_cohere(model=endpoint_info["model_name"],
+                output = chat_completion_cohere(model=endpoint_info.model_name,
                                                 messages=conv,
                                                 temperature=temperature,
                                                 max_tokens=max_tokens)
+            elif api_type == "litellm":
+                output = chat_completion_litellm(model=endpoint_info.model_name,
+                                                 messages=conv,
+                                                 temperature=temperature,
+                                                 max_tokens=max_tokens)
             else:
-                output = chat_completion_openai(model=endpoint_info["model_name"], 
+                output = chat_completion_openai(model=endpoint_info.model_name, 
                                                 messages=conv, 
                                                 temperature=temperature, 
                                                 max_tokens=max_tokens, 
@@ -121,45 +129,45 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    settings = make_config(args.setting_file)
-    endpoint_list = make_config(args.endpoint_file)
+    settings = GenAnswerConfig(**make_config(args.setting_file))
+    endpoint_list = EndpointList(**make_config(args.endpoint_file))
 
-    existing_answer = load_model_answers(os.path.join("data", settings["bench_name"], "model_answer"))
+    existing_answer = load_model_answers(os.path.join("data", settings.bench_name, "model_answer"))
     
     print(settings)
 
-    for model in settings["model_list"]:
+    for model in settings.model_list:
         assert model in endpoint_list
         endpoint_info = endpoint_list[model]
 
-        question_file = os.path.join("data", settings["bench_name"], "question.jsonl")
+        question_file = os.path.join("data", settings.bench_name, "question.jsonl")
         questions = load_questions(question_file)
 
-        answer_file = os.path.join("data", settings["bench_name"], "model_answer", f"{model}.jsonl")
+        answer_file = os.path.join("data", settings.bench_name, "model_answer", f"{model}.jsonl")
         print(f"Output to {answer_file}")
 
-        if "parallel" in endpoint_info:
-            parallel = endpoint_info["parallel"]
+        if endpoint_info.parallel:
+            parallel = endpoint_info.parallel
         else:
             parallel = 1
 
         # We want to maximizes the number of tokens generate per answer: max_tokens = specified token # - input tokens #
-        if "tokenizer" in endpoint_info:
+        if endpoint_info.tokenizer:
             question_list = [question["turns"][0]["content"] for question in questions]
             if model in OPENAI_MODEL_LIST:
-                tokenizer = tiktoken.encoding_for_model(endpoint_info["model_name"])
+                tokenizer = tiktoken.encoding_for_model(endpoint_info.model_name)
                 tokens = [tokenizer.encode(prompt) for prompt in question_list]
-                max_tokens = [(settings["max_tokens"] - len(token) - 100) for token in tokens]
+                max_tokens = [(settings.max_tokens- len(token) - 100) for token in tokens]
             else:
                 from transformers import AutoTokenizer
                 
                 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-                tokenizer = AutoTokenizer.from_pretrained(endpoint_info["tokenizer"])
+                tokenizer = AutoTokenizer.from_pretrained(endpoint_info.tokenizer)
 
                 tokens = tokenizer(question_list)
-                max_tokens = [(settings["max_tokens"] - len(prompt) - 300) for prompt in tokens["input_ids"]]
+                max_tokens = [(settings.max_tokens - len(prompt) - 300) for prompt in tokens["input_ids"]]
         else:
-            max_tokens = [settings["max_tokens"]] * len(questions)
+            max_tokens = [settings.max_tokens] * len(questions)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=parallel) as executor:
             futures = []
@@ -173,11 +181,12 @@ if __name__ == "__main__":
                     question,
                     model,
                     endpoint_info,
-                    settings["num_choices"],
+                    settings.num_choices,
                     max_tokens[index],
-                    settings["temperature"],
+                    settings.temperature,
                     answer_file,
-                    get_endpoint(endpoint_info["endpoints"]),
+                    get_endpoint(endpoint_info.endpoints),
+                    settings.images_base_dir
                 )
                 futures.append(future)
             if count > 0:

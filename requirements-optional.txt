@@ -2,3 +2,4 @@ google-generativeai
 mistralai
 anthropic
 cohere
+litellm
