@@ -3,12 +3,12 @@ from typing import List, Dict, Optional
 
 @dataclass
 class GenAnswerConfig:
-    bench_name: str
+    bench_name: str = "arena-hard-v0.1"
     model_list: List[str] = field(default_factory=list)
-    num_choices: int
-    max_tokens: int
-    temperature: float
-    images_base_dir: str
+    num_choices: int = 1
+    max_tokens: int = 4096
+    temperature: float = 0.0
+    images_base_dir: str = ""
 
 @dataclass
 class EndpointInfo:
@@ -20,5 +20,5 @@ class EndpointInfo:
     endpoints: Dict[str, str] = field(default_factory=dict)
 
 @dataclass
-class EndpointList:
+class EndpointsConfig:
     endpoints: Dict[str, EndpointInfo] = field(default_factory=dict)

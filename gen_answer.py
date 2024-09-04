@@ -15,7 +15,7 @@ import shortuuid
 import tqdm
 
 from add_markdown_info import count_markdown_elements, remove_pattern
-from config.configs import GenAnswerConfig, EndpointInfo, EndpointList
+from config.configs import GenAnswerConfig, EndpointInfo, EndpointConfig
 from utils import (
     load_questions,
     load_model_answers,
@@ -130,15 +130,16 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     settings = GenAnswerConfig(**make_config(args.setting_file))
-    endpoint_list = EndpointList(**make_config(args.endpoint_file))
+    endpoints_config = EndpointsConfig(**make_config(args.endpoint_file))
 
     existing_answer = load_model_answers(os.path.join("data", settings.bench_name, "model_answer"))
     
     print(settings)
+    print(endpoints_config)
 
     for model in settings.model_list:
-        assert model in endpoint_list
-        endpoint_info = endpoint_list[model]
+        assert model in endpoints_config.endpoints
+        endpoint_info = endpoints_config.endpoints[model]
 
         question_file = os.path.join("data", settings.bench_name, "question.jsonl")
         questions = load_questions(question_file)
