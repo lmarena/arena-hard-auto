@@ -70,8 +70,7 @@ def to_arena_hard_questions_format(conversations: List[Dict], clusters: List[int
     arena_hard_questions = []
     for i, (conv, cluster) in enumerate(zip(conversations, clusters)):
         turns_list = []
-        for turn in range(0, len(conv["conversation_a"]), 2):
-            turns_list.append({"content": conv["conversation_a"][turn]["content"]})
+        turns_list.append({"content": conv["conversation_a"][0]["content"][0]})
 
         arena_hard_questions.append({
             "question_id": f"{i}",
@@ -84,16 +83,17 @@ def to_arena_hard_questions_format(conversations: List[Dict], clusters: List[int
 
 def to_wandb_table(conversations: List[Dict], image_dir: str) -> wandb.Table:
     data = []
-    columns = ["post_processed_question", "image", "prompt_score"]
+    columns = ["question", "image", "prompt_score"]
     for conv in conversations:
         # conv["conversation_a"][0] is the first turn of the conversation 
         # conv["conversation_a"][0]["content"][1][0] is indexing to the first index of the images
+        question = conv["conversation_a"][0]["content"][0]
         image_hash = conv["conversation_a"][0]["content"][1][0]
         image_path = os.path.join(image_dir, f"{image_hash}.png")
         wandb_image = image_path
         try: 
             wandb_image = wandb.Image(image_path)
-            data.append([conv["post_process_conv"], wandb_image, conv["prompt_score"]])
+            data.append([question, wandb_image, conv["prompt_score"]])
         except FileNotFoundError as e:
             print(f"File not found: {image_path}")
 
