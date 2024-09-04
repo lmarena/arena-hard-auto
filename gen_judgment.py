@@ -12,10 +12,13 @@ from utils import (
     chat_completion_openai,
     chat_completion_openai_azure,
     chat_completion_anthropic,
+    chat_completion_litellm,
     load_questions,
     load_model_answers,
     get_endpoint,
     make_config,
+    get_filepath,
+    _content_to_openai_format,
 )
 
 
@@ -40,10 +43,11 @@ def get_answer(model, conv, temperature, max_tokens, endpoint_dict=None):
         output = chat_completion_anthropic(model, conv, temperature, max_tokens)
     elif endpoint_dict["api_type"] == "azure":
         output = chat_completion_openai_azure(model, conv, temperature, max_tokens, api_dict)
+    elif endpoint_dict["api_type"] == "litellm":
+        output = chat_completion_litellm(model, conv, temperature, max_tokens)
     else:
         output = chat_completion_openai(model, conv, temperature, max_tokens, api_dict)
-    return output
-
+    return output    
 
 def judgment(**args):
     question = args["question"]
@@ -53,7 +57,7 @@ def judgment(**args):
     configs = args["configs"]
     output_file = args["output_file"]
     model = configs["judge_model"]
-
+    images_base_dir = args["images_base_dir"]
     num_games = 2 if configs["pairwise"] else 1
 
     output = {
@@ -70,7 +74,11 @@ def judgment(**args):
             prompt_args = {}
 
             for i, turn in enumerate(question["turns"]):
-                prompt_args[f"question_{i+1}"] = turn["content"]
+                if isinstance(turn["content"], str):
+                    prompt_args[f"question_{i+1}"] = turn["content"]
+                else:
+                    # For text, images pair, the first element is text, the second is images list
+                    prompt_args[f"question_{i+1}"] = turn["content"][0]
             base = 1
 
             if baseline:
@@ -90,6 +98,10 @@ def judgment(**args):
                         prompt_args[f"ref_answer_{i+j+1}"] = turn["content"]
             
             user_prompt = template.format(**prompt_args)
+            if isinstance(question["turns"][0]["content"], list):
+                user_prompt = [user_prompt, question["turns"][0]["content"][1]]
+                user_prompt = _content_to_openai_format(user_prompt, images_base_dir)
+                
             conv.append({"role": "user", "content": user_prompt})
 
         judgment = ""
@@ -113,8 +125,14 @@ def judgment(**args):
 
             conv.append({"role": "user", "content": "continue your judgment and finish by outputting a final verdict label"})
 
+        if isinstance(question["turns"][0]["content"], list):
+            image_hashes = question["turns"][0]["content"][1]
+            user_prompt_output = [conv[1]["content"][0], image_hashes]
+        else:
+            user_prompt_output = conv[1]["content"]
+
         result = {
-            "user_prompt": conv[1]["content"],
+            "user_prompt": user_prompt_output,
             "judgment": judgment,
             "score": score
         }
@@ -128,6 +146,21 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--setting-file", type=str, default="config/judge_config.yaml")
     parser.add_argument("--endpoint-file", type=str, default="config/api_config.yaml")
+    parser.add_argument(
+        "--question-file", type=str, default="", help="Path to the question file that model answers to",
+    )
+    parser.add_argument(
+        "--answers-base-dir", type=str, default = "", help="Output path that stores the model's answers",
+    )
+    parser.add_argument(
+        "--images-base-dir", type=str, default = "", help="Path to the directory that stores images",
+    )
+    parser.add_argument(
+        "--ref-answers-base-dir", type=str, default = "", help="Path to the directory that stores reference answers",
+    )
+    parser.add_argument(
+        "--output-dir", type=str, default="", help="Path to the directory that stores output files",
+    )
     args = parser.parse_args()
     print(args)
 
@@ -140,9 +173,11 @@ if __name__ == "__main__":
     if configs["regex_pattern"]:
         pattern = re.compile(configs["regex_pattern"])
 
-    question_file = os.path.join("data", configs["bench_name"], "question.jsonl")
-    answer_dir = os.path.join("data", configs["bench_name"], "model_answer")
-    ref_answer_dir = os.path.join("data", configs["bench_name"], "reference_answer")
+
+    default_base_dir = os.path.join("data", configs["bench_name"])
+    question_file = get_filepath(args.question_file, os.path.join(default_base_dir, "question.jsonl"))
+    answer_dir = get_filepath(args.answers_base_dir, os.path.join(default_base_dir, "model_answer"))
+    ref_answer_dir = get_filepath(args.ref_answers_base_dir, os.path.join(default_base_dir, "reference_answer"))
 
     questions = load_questions(question_file)
     model_answers = load_model_answers(answer_dir)
@@ -156,7 +191,7 @@ if __name__ == "__main__":
         ref_answers = [ref_answers[model] for model in configs["ref_model"]]
     
     output_files = {}
-    output_dir = f"data/{configs['bench_name']}/model_judgment/{configs['judge_model']}"
+    output_dir = get_filepath(args.output_dir, os.path.join(default_base_dir, "model_judgment", configs["judge_model"]))
     for model in models:
         output_files[model] = os.path.join(
             output_dir,
@@ -201,6 +236,7 @@ if __name__ == "__main__":
                 kwargs["endpoint_dict"] = endpoint_info
                 kwargs["output_file"] = output_files[model]
                 kwargs["regex_pattern"] = pattern
+                kwargs["images_base_dir"] = args.images_base_dir
                 future = executor.submit(judgment, **kwargs)
                 futures.append(future)
 

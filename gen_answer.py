@@ -133,6 +133,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--answers-base-dir", type=str, default = "", help="Output path that stores the model's answers",
     )
+    parser.add_argument(
+        "--images-base-dir", type=str, default = "", help="Path to the images that model answers to",
+    )
     args = parser.parse_args()
 
     settings = GenAnswerConfig.from_dict(make_config(args.setting_file))
@@ -199,7 +202,7 @@ if __name__ == "__main__":
                     settings.temperature,
                     answer_file,
                     get_endpoint(endpoint_info.endpoints),
-                    settings.images_base_dir
+                    args.images_base_dir
                 )
                 futures.append(future)
             if count > 0:

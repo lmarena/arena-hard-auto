@@ -355,6 +355,12 @@ def chat_completion_litellm(model, messages, temperature, max_tokens):
     
     return output
 
+def get_filepath(args_filepath: str, default_filepath: str):
+    if args_filepath:
+        return args_filepath
+    else:
+        return default_filepath
+
 def reorg_answer_file(answer_file):
     """Sort by question id and de-duplication"""
     answers = {}

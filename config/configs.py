@@ -9,7 +9,6 @@ class GenAnswerConfig:
     num_choices: int = 1
     max_tokens: int = 4096
     temperature: float = 0.0
-    images_base_dir: str = ""
 
     @staticmethod
     def from_dict(d: Dict) -> "GenAnswerConfig":
