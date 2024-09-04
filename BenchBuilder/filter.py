@@ -96,15 +96,21 @@ def to_wandb_table(conversations: List[Dict], image_dir: str) -> wandb.Table:
     for conv in conversations:
         # conv["conversation_a"][0] is the first turn of the conversation 
         # conv["conversation_a"][0]["content"][1][0] is indexing to the first index of the images
-        question = conv["conversation_a"][0]["content"][0]
-        image_hash = conv["conversation_a"][0]["content"][1][0]
-        image_path = os.path.join(image_dir, f"{image_hash}.png")
-        wandb_image = image_path
-        try: 
+        if isinstance(conv["conversation_a"][0]["content"], list):
+            question = conv["conversation_a"][0]["content"][0]
+
+            # Take the first image
+            image_hash = conv["conversation_a"][0]["content"][1][0]
+            image_path = os.path.join(image_dir, f"{image_hash}.png")
+            wandb_image = image_path
+            if not os.path.exists(image_path):
+                print(f"Image not found: {image_path}, not included in WANDB.")
+                continue
             wandb_image = wandb.Image(image_path)
             data.append([question, wandb_image, conv["prompt_score"]])
-        except FileNotFoundError as e:
-            print(f"File not found: {image_path}")
+        elif isinstance(conv["conversation_a"][0]["content"], str):
+            question = conv["conversation_a"][0]["content"]
+            data.append([question, conv["prompt_score"]])
 
     return wandb.Table(data=data, columns=columns)
 
