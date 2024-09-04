@@ -52,7 +52,7 @@ def filter_prompts(conversations: List[Dict], clusters: List[int], prompt_thresh
     
     return filtered_prompts
 
-def to_arena_hard_questions_format(conversations: List[Dict], clusters: List[int], topics_file: str) -> List[Dict]:
+def to_arena_hard_questions_format(conversations: List[Dict], clusters: List[int], topics_file: str, image_dir: str) -> List[Dict]:
     """
     Convert to a format like this:
     {"question_id":"328c149ed45a41c0b9d6f14659e63599",
@@ -69,6 +69,15 @@ def to_arena_hard_questions_format(conversations: List[Dict], clusters: List[int
 
     arena_hard_questions = []
     for i, (conv, cluster) in enumerate(zip(conversations, clusters)):
+        # Contains image
+        if isinstance(conv["conversation_a"][0]["content"], list):
+            image_hash = conv["conversation_a"][0]["content"][1][0]
+            image_path = os.path.join(image_dir, f"{image_hash}.png")
+            is_image_valid = os.path.exists(image_path)
+            if not is_image_valid:
+                print(f"Image not found: {image_path}, not included in benchmark.")
+                continue
+        
         turns_list = []
         turns_list.append({"content": conv["conversation_a"][0]["content"]})
 
@@ -120,7 +129,7 @@ def main():
     
     filtered_prompts = filter_prompts(conversations, clusters, args.prompt_threshold, args.cluster_threshold)
     
-    arena_hard_questions = to_arena_hard_questions_format(filtered_prompts, clusters, args.topics_file)
+    arena_hard_questions = to_arena_hard_questions_format(filtered_prompts, clusters, args.topics_file, args.image_dir)
 
     with open(args.output_file, "w") as f:
         for question in arena_hard_questions:

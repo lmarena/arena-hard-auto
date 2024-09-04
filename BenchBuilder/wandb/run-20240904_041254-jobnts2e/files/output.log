@@ -1,0 +1,9 @@
+
+Cluster to mean score: {4: 1.5, 0: 2.736479842674533, '0': 3.409090909090909, 1: 2.1690140845070425, 6: 4.3, 3: 2.3275862068965516, '2': 3.15, '4': 0.8260869565217391, '7': 3.0833333333333335, 5: 1.4, 2: 2.602409638554217, '5': 1.6363636363636365, '3': 5.333333333333333, 7: 1.9166666666666667, '1': 4.470588235294118}
+Traceback (most recent call last):
+  File "/home/babychou/arena-hard-auto/BenchBuilder/filter.py", line 145, in <module>
+    main()
+  File "/home/babychou/arena-hard-auto/BenchBuilder/filter.py", line 132, in main
+    arena_hard_questions = to_arena_hard_questions_format(filtered_prompts, clusters, args.topics_file)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: to_arena_hard_questions_format() missing 1 required positional argument: 'image_dir'
