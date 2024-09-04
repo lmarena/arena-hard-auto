@@ -1,0 +1,26 @@
+2024-09-04 00:26:06,486 INFO    MainThread:1736220 [wandb_setup.py:_flush():77] Current SDK version is 0.17.8
+2024-09-04 00:26:06,486 INFO    MainThread:1736220 [wandb_setup.py:_flush():77] Configure stats pid to 1736220
+2024-09-04 00:26:06,486 INFO    MainThread:1736220 [wandb_setup.py:_flush():77] Loading settings from /home/babychou/.config/wandb/settings
+2024-09-04 00:26:06,486 INFO    MainThread:1736220 [wandb_setup.py:_flush():77] Loading settings from /home/babychou/arena-hard-auto/BenchBuilder/wandb/settings
+2024-09-04 00:26:06,486 INFO    MainThread:1736220 [wandb_setup.py:_flush():77] Loading settings from environment variables: {}
+2024-09-04 00:26:06,486 INFO    MainThread:1736220 [wandb_setup.py:_flush():77] Applying setup settings: {'_disable_service': False}
+2024-09-04 00:26:06,486 INFO    MainThread:1736220 [wandb_setup.py:_flush():77] Inferring run settings from compute environment: {'program_relpath': 'BenchBuilder/filter.py', 'program_abspath': '/home/babychou/arena-hard-auto/BenchBuilder/filter.py', 'program': '/home/babychou/arena-hard-auto/BenchBuilder/filter.py'}
+2024-09-04 00:26:06,486 INFO    MainThread:1736220 [wandb_setup.py:_flush():77] Applying login settings: {}
+2024-09-04 00:26:06,486 INFO    MainThread:1736220 [wandb_init.py:_log_setup():524] Logging user logs to /home/babychou/arena-hard-auto/BenchBuilder/wandb/run-20240904_002606-0dwobs4t/logs/debug.log
+2024-09-04 00:26:06,486 INFO    MainThread:1736220 [wandb_init.py:_log_setup():525] Logging internal logs to /home/babychou/arena-hard-auto/BenchBuilder/wandb/run-20240904_002606-0dwobs4t/logs/debug-internal.log
+2024-09-04 00:26:06,486 INFO    MainThread:1736220 [wandb_init.py:init():607] calling init triggers
+2024-09-04 00:26:06,486 INFO    MainThread:1736220 [wandb_init.py:init():614] wandb.init called with sweep_config: {}
+config: {}
+2024-09-04 00:26:06,486 INFO    MainThread:1736220 [wandb_init.py:init():657] starting backend
+2024-09-04 00:26:06,486 INFO    MainThread:1736220 [wandb_init.py:init():661] setting up manager
+2024-09-04 00:26:06,487 INFO    MainThread:1736220 [backend.py:_multiprocessing_setup():105] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2024-09-04 00:26:06,488 INFO    MainThread:1736220 [wandb_init.py:init():669] backend started and connected
+2024-09-04 00:26:06,489 INFO    MainThread:1736220 [wandb_init.py:init():767] updated telemetry
+2024-09-04 00:26:06,492 INFO    MainThread:1736220 [wandb_init.py:init():800] communicating run to backend with 90.0 second timeout
+2024-09-04 00:26:07,891 INFO    MainThread:1736220 [wandb_init.py:init():851] starting run threads in backend
+2024-09-04 00:26:13,271 INFO    MainThread:1736220 [wandb_run.py:_console_start():2463] atexit reg
+2024-09-04 00:26:13,271 INFO    MainThread:1736220 [wandb_run.py:_redirect():2309] redirect: wrap_raw
+2024-09-04 00:26:13,271 INFO    MainThread:1736220 [wandb_run.py:_redirect():2374] Wrapping output streams.
+2024-09-04 00:26:13,271 INFO    MainThread:1736220 [wandb_run.py:_redirect():2399] Redirects installed.
+2024-09-04 00:26:13,272 INFO    MainThread:1736220 [wandb_init.py:init():894] run started, returning control to user process
+2024-09-04 00:26:17,468 WARNING MsgRouterThr:1736220 [router.py:message_loop():77] message_loop has been closed

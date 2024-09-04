@@ -1,6 +1,7 @@
 """
 Filter prompts based on scores and cluster thresholds. To be run after topic_clustering.py and label.py
 """
+import hashlib
 import os
 
 import orjson
@@ -51,6 +52,36 @@ def filter_prompts(conversations: List[Dict], clusters: List[int], prompt_thresh
     
     return filtered_prompts
 
+def to_arena_hard_questions_format(conversations: List[Dict], clusters: List[int], topics_file: str) -> List[Dict]:
+    """
+    Convert to a format like this:
+    {"question_id":"328c149ed45a41c0b9d6f14659e63599",
+     "category":"arena-hard-v0.1",
+     "cluster":"ABC Sequence Puzzles & Groups",
+     "turns":[{"content":"Use ABC notation to write a melody in the style of a folk tune."}]
+    }
+    """
+
+    topics_map = load_json(topics_file)
+    cluster_number_to_name: Dict[str, str] = {}
+    for cluster_number, cluster_obj in topics_map["topic_aspects"]["OpenAI"].items():
+        cluster_number_to_name[cluster_number] = cluster_obj[0][0]
+
+    arena_hard_questions = []
+    for i, (conv, cluster) in enumerate(zip(conversations, clusters)):
+        turns_list = []
+        for turn in range(0, len(conv["conversation_a"]), 2):
+            turns_list.append({"content": conv["conversation_a"][turn]["content"]})
+
+        arena_hard_questions.append({
+            "question_id": f"{i}",
+            "category": "arena-hard-v0.1",
+            "cluster": cluster_number_to_name[str(cluster)],
+            "turns": turns_list
+        })
+
+    return arena_hard_questions
+
 def to_wandb_table(conversations: List[Dict], image_dir: str) -> wandb.Table:
     data = []
     columns = ["post_processed_question", "image", "prompt_score"]
@@ -65,7 +96,7 @@ def to_wandb_table(conversations: List[Dict], image_dir: str) -> wandb.Table:
             data.append([conv["post_process_conv"], wandb_image, conv["prompt_score"]])
         except FileNotFoundError as e:
             print(f"File not found: {image_path}")
-            
+
     return wandb.Table(data=data, columns=columns)
 
 def main():
@@ -77,6 +108,7 @@ def main():
     parser.add_argument('--cluster_threshold', type=int, default=3, help='Minimum average score threshold for clusters')
     parser.add_argument('--output_file', type=str, default='filtered_prompts.json', help='Path to save the filtered prompts')
     parser.add_argument('--wandb_project', type=str, default='arena-hard-auto', help='Wandb project name')
+    parser.add_argument("--topics_file", type=str, default="topics.json", help="Path to the file containing topic cluster numbers to names mapping")
     
     args = parser.parse_args()
 
@@ -88,8 +120,11 @@ def main():
     
     filtered_prompts = filter_prompts(conversations, clusters, args.prompt_threshold, args.cluster_threshold)
     
-    with open(args.output_file, 'w') as f:
-        json.dump(filtered_prompts, f, indent=2)
+    arena_hard_questions = to_arena_hard_questions_format(filtered_prompts, clusters, args.topics_file)
+
+    with open(args.output_file, "w") as f:
+        for question in arena_hard_questions:
+            f.write(json.dumps(question) + "\n")
     
     print(f"Filtered {len(filtered_prompts)} prompts out of {len(conversations)} total.")
     print(f"Results saved to {args.output_file}")
