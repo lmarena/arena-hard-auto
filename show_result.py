@@ -8,7 +8,7 @@ import os
 from glob import glob
 from tqdm import tqdm
 
-from utils import load_model_answers
+from utils import load_model_answers, get_filepath
 from utils_math import (
     compute_mle_elo, 
     get_bootstrap_result,
@@ -105,21 +105,23 @@ def get_battles_from_row(row, first_game_only, multiplier, baseline_model, metad
     return results
 
 
-def get_battles_from_judgment(bench_name, 
-                              judge_name, 
+def get_battles_from_judgment(bench_name: str,
+                              judge_name: str,
+                              answer_dir: str,
+                              judge_dir: str,
                               first_game_only=False, 
                               multiplier=3, 
                               baseline_model="gpt-4-0314",
                               style_control=False):
     print("Turning judgment results into battles...")
 
-    judge_dir = f"data/{bench_name}/model_judgment/{judge_name}"
+    judge_dir = get_filepath(judge_dir, f"data/{bench_name}/model_judgment/{judge_name}")
     assert os.path.exists(judge_dir)
     judgments = pd.concat([pd.read_json(file, lines=True) for file in tqdm(glob(f"{judge_dir}/*jsonl"))])
     
     metadata = None
     if style_control:
-        ans_dir = f"data/{bench_name}/model_answer"
+        ans_dir = get_filepath(answer_dir, f"data/{bench_name}/model_answer")
         assert os.path.exists(ans_dir)
         
         metadata = {}
@@ -148,16 +150,20 @@ if __name__ == "__main__":
     parser.add_argument("--style-control", action="store_true")
     parser.add_argument("--length-control-only", action="store_true")
     parser.add_argument("--markdown-control-only", action="store_true")
+    parser.add_argument("--answer-dir", type=str, default="")
+    parser.add_argument("--judge-dir", type=str, default="")
     args = parser.parse_args()
     print(args)
     assert not args.load_bootstrap or (args.load_battles and args.load_bootstrap), "If loading prexisting bootstrapping data, you must also load preexisting battles."
     assert sum([args.style_control, args.length_control_only, args.markdown_control_only]) < 2, "You can only control one of the three: length, markdown, or both style."
 
-    answer_dir = os.path.join("data", args.bench_name, "model_answer")
+    answer_dir = get_filepath(args.answer_dir, os.path.join("data", args.bench_name, "model_answer"))
     model_answers = load_model_answers(answer_dir)
     
     battles = get_battles_from_judgment(args.bench_name, 
                                         args.judge_name, 
+                                        args.answer_dir,
+                                        args.judge_dir,
                                         args.first_game_only, 
                                         args.weight, 
                                         args.baseline,

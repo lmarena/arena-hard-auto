@@ -11,6 +11,7 @@ import gradio as gr
 from utils import (
     load_questions,
     load_model_answers,
+    get_filepath
 )
 
 
@@ -82,9 +83,15 @@ def pairwise_to_gradio_chat_mds(question, ans_a, ans_b, ans_base=None, turn=None
     for i in range(end):
         base = i * 3
         if i == 0:
-            mds[base + 0] = "##### User\n" + question["turns"][i]["content"]
+            if isinstance(question["turns"][i]["content"], list):
+                mds[base + 0] = "##### User\n" + question["turns"][i]["content"][0]
+            else:
+                mds[base + 0] = "##### User\n" + question["turns"][i]["content"]
         else:
-            mds[base + 0] = "##### User's follow-up question \n" + question["turns"][i]["content"]
+            if isinstance(question["turns"][i]["content"], list):
+                mds[base + 0] = "##### User's follow-up question \n" + question["turns"][i]["content"][0]
+            else:
+                mds[base + 0] = "##### User's follow-up question \n" + question["turns"][i]["content"]
         mds[base + 1] = f"{ans_a['model_id']}\n" + post_process_answer(
             ans_a["choices"][0]["turns"][i]["content"].strip()
         )
@@ -100,7 +107,10 @@ def build_question_selector_map():
 
     # Build question selector map
     for i, q in enumerate(questions):
-        preview = f"{i+1}: " + q["turns"][0]["content"][:128] + "..."
+        if isinstance(q["turns"][0]["content"], list):
+            preview = f"{i+1}: " + q["turns"][0]["content"][0][:128] + "..."
+        else:
+            preview = f"{i+1}: " + q["turns"][0]["content"][:128] + "..."
         question_selector_map[preview] = q
         category_selector_map[q["category"]].append(preview)
 
@@ -133,15 +143,15 @@ def build_pairwise_browser_tab():
             with gr.Column():
                 if i == 0:
                     model_selectors[i] = gr.Dropdown(
-                        choices=["gpt-4-0314"],
-                        value="gpt-4-0314",
+                        choices=models,
+                        value=models[0] if models else "",
                         label=f"Model {side_names[i]}",
                         container=False,
                     )
                 else:
                     model_selectors[i] = gr.Dropdown(
                         choices=models,
-                        value="gpt-3.5-turbo-0125",
+                        value=models[1] if len(models) > 1 else "",
                         label=f"Model {side_names[i]}",
                         container=False,
                     )
@@ -344,18 +354,21 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int)
     parser.add_argument("--share", action="store_true")
     parser.add_argument("--config-file", type=str, default="config/judge_config.yaml")
+    parser.add_argument("--question-file", type=str, default="")
+    parser.add_argument("--answers-base-dir", type=str, default="")
+    parser.add_argument("--model-judgment-dir", type=str, default="")
     args = parser.parse_args()
     print(args)
 
     configs = make_config(args.config_file)
 
-    question_file = f"data/{configs['bench_name']}/question.jsonl"
-    answer_dir = f"data/{configs['bench_name']}/model_answer"
+    question_file = get_filepath(args.question_file, f"data/{configs['bench_name']}/question.jsonl")
+    answer_dir = get_filepath(args.answers_base_dir, f"data/{configs['bench_name']}/model_answer")
     pairwise_model_judgment_dir = (
-        os.path.join("data", configs["bench_name"], "model_judgment", configs["judge_model"])
+        get_filepath(os.path.join(args.model_judgment_dir, configs['judge_model']), f"data/{configs['bench_name']}/model_judgment/{configs['judge_model']}")
     )
     single_model_judgment_dir = (
-        os.path.join("data", configs["bench_name"], "model_judgment", configs["judge_model"])
+        get_filepath(os.path.join(args.model_judgment_dir, configs['judge_model']), f"data/{configs['bench_name']}/model_judgment/{configs['judge_model']}")
     )
     # Load questions
     questions = load_questions(question_file)
