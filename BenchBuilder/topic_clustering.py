@@ -21,7 +21,7 @@ def run(args):
     client = openai.OpenAI()
 
     if args.embedding_file is not None:
-        embeddings = np.load(args.embedding_file)
+        embeddings = np.load(args.embedding_file, allow_pickle=True)
         if args.post_process_conv is not None:
             all_convs = json.load(open(args.post_process_conv))
         else:
@@ -110,7 +110,8 @@ def run(args):
         representation_model=representation_model,
         min_topic_size=args.min_topic_size,
     )
-    topics, _ = topic_model.fit_transform(convs, embeddings); len(topic_model.get_topic_info())
+    num_convs = min(len(convs), len(embeddings))
+    topics, _ = topic_model.fit_transform(convs[:num_convs], embeddings[:num_convs]); len(topic_model.get_topic_info())
 
     new_topics = topic_model.reduce_outliers(convs, topics)
     with open(f"{args.output_dir}/conv_topics.json", "w") as f:
