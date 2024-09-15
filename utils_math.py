@@ -3,11 +3,9 @@ import numpy as np
 import math
 import inspect
 
-from tqdm import tqdm
+from tqdm.auto import trange
 from sklearn.linear_model import LogisticRegression
 from collections import defaultdict
-
-np.random.seed(42)
 
 STYLE_CONTROL_ELEMENTS = [
     "sum_assistant_a_tokens",
@@ -74,8 +72,8 @@ def get_bootstrap_result(battles, func_compute_elo, num_round, baseline_model="g
     kwargs = {}
     if baseline_model in inspect.signature(func_compute_elo).parameters:
         kwargs[baseline_model] = baseline_model
-    for _ in tqdm(range(num_round), desc="bootstrap"):
-        rows.append(func_compute_elo(battles.sample(frac=1.0, replace=True), **kwargs))
+    for round in trange(num_round, desc="bootstrap"):
+        rows.append(func_compute_elo(battles.sample(frac=1.0, replace=True, random_state=round), **kwargs))
     df = pd.DataFrame(rows)
     return df[df.median().sort_values(ascending=False).index]
 
@@ -206,9 +204,11 @@ def get_bootstrap_result_style_control(X, Y, battles, models, func_compute_elo, 
         X.shape[0] / 2
     )  # Since we duplicate the battles when constructing X and Y, we don't want to sample the duplicates
 
+    rng = np.random.default_rng(42)
+
     battles_tie_idx = (battles["winner"] == "tie") | (battles["winner"] == "tie (bothbad)")
-    for _ in tqdm(range(num_round), desc="bootstrap"):
-        indices = np.random.choice(list(range(k)), size=(k), replace=True)
+    for _ in trange(num_round, desc="bootstrap"):
+        indices = rng.choice(list(range(k)), size=(k), replace=True)
 
         index2tie = np.zeros(k, dtype=bool)
         index2tie[battles_tie_idx] = True
