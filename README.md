@@ -23,7 +23,8 @@ o1-preview-2024-09-12          | score: 81.6  | 95% CI: (-2.4, 2.2)  | average #
 o1-mini-2024-09-12             | score: 79.2  | 95% CI: (-2.6, 2.4)  | average #tokens: 1399                                                     
 gpt-4-turbo-2024-04-09         | score: 74.4  | 95% CI: (-2.5, 2.1)  | average #tokens: 662                                                      
 gpt-4-0125-preview             | score: 73.5  | 95% CI: (-2.4, 1.8)  | average #tokens: 619                                                      
-gpt-4o-2024-08-06              | score: 71.0  | 95% CI: (-2.5, 2.8)  | average #tokens: 594                                                      
+gpt-4o-2024-08-06              | score: 71.0  | 95% CI: (-2.5, 2.8)  | average #tokens: 594
+llama-3.1-nemotron-70b-instruct| score: 70.9  | 95% CI: (-3.3, 3.3)  | average #tokens: 869
 gpt-4o-2024-05-13              | score: 69.9  | 95% CI: (-2.5, 2.3)  | average #tokens: 696                                                      
 athene-70b                     | score: 67.7  | 95% CI: (-3.2, 2.2)  | average #tokens: 685                                                      
 yi-lightning                   | score: 67.1  | 95% CI: (-2.3, 2.8)  | average #tokens: 875                                                      
@@ -95,6 +96,7 @@ The following leaderboard has no style control.
 ```console
 o1-mini-2024-09-12             | score: 92.0  | 95% CI: (-1.2, 1.0)  | average #tokens: 1399                                                     
 o1-preview-2024-09-12          | score: 90.4  | 95% CI: (-1.1, 1.3)  | average #tokens: 1193
+llama-3.1-nemotron-70b-instruct| score: 84.9  | 95% CI: (-1.7, 1.8)  | average #tokens: 869
 gpt-4-turbo-2024-04-09         | score: 82.6  | 95% CI: (-1.8, 1.5)  | average #tokens: 662                                                      
 yi-lightning                   | score: 81.5  | 95% CI: (-1.6, 1.6)  | average #tokens: 875                                                     
 claude-3-5-sonnet-20240620     | score: 79.3  | 95% CI: (-2.1, 2.0)  | average #tokens: 567
