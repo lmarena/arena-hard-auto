@@ -150,7 +150,7 @@ if __name__ == "__main__":
     parser.add_argument("--markdown-control-only", action="store_true")
     args = parser.parse_args()
     print(args)
-    assert not args.load_bootstrap or (args.load_battles and args.load_bootstrap), "If loading prexisting bootstrapping data, you must also load preexisting battles."
+    assert not args.load_bootstrap or (args.load_battles and args.load_bootstrap), "If loading preexisting bootstrapping data, you must also load preexisting battles."
     assert sum([args.style_control, args.length_control_only, args.markdown_control_only]) < 2, "You can only control one of the three: length, markdown, or both style."
 
     answer_dir = os.path.join("data", args.bench_name, "model_answer")
