@@ -103,7 +103,6 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
         )
     else:
         client = openai.OpenAI()
-    
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         try:
@@ -112,8 +111,8 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                )
-            output = completion.choices[0].message.content
+            )
+            output = completion.choices[0]['message']['content']
             break
         except openai.RateLimitError as e:
             print(type(e), e)
@@ -124,7 +123,6 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
         except KeyError:
             print(type(e), e)
             break
-    
     return output
 
 
