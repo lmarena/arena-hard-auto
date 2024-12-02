@@ -180,6 +180,7 @@ if __name__ == "__main__":
             }
             wandb.config.update({f'{model}/config': model_config}, allow_val_change=True)
 
+        start_time = time.time()
         with concurrent.futures.ThreadPoolExecutor(max_workers=parallel) as executor:
             futures = []
             count = 0
@@ -201,9 +202,14 @@ if __name__ == "__main__":
                 futures.append(future)
             if count > 0:
                 print(f"{count} number of existing answers")
-            for future in tqdm.tqdm(
-                concurrent.futures.as_completed(futures), total=len(futures)
+            for question_index, future in tqdm.tqdm(
+                enumerate(concurrent.futures.as_completed(futures)), total=len(futures)
             ):
                 future.result()
+                time_passed = time.time() - start_time
+                wandb.log({
+                    f"{model}/question_passed": question_index,
+                    f"{model}/time_passed": time_passed
+                })
 
         reorg_answer_file(answer_file)
