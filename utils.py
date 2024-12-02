@@ -7,6 +7,7 @@ import requests
 
 from typing import Optional
 from glob import glob
+from .local_client import LocalClient
 
 # API setting constants
 API_MAX_RETRY = 16
@@ -92,6 +93,32 @@ def make_config(config_file: str) -> dict:
         config_kwargs = yaml.load(f, Loader=yaml.SafeLoader)
 
     return config_kwargs
+
+
+def chat_completion_local(model, messages, temperature, max_tokens, api_dict=None):
+    client = LocalClient(
+        model=model,
+        options=api_dict,
+    )
+    output = API_ERROR_OUTPUT
+    for _ in range(API_MAX_RETRY):
+        try:
+            output = client.run(
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+            break
+        except client.RateLimitError as e:
+            print(type(e), e)
+            time.sleep(API_RETRY_SLEEP)
+        except client.BadRequestError as e:
+            print(type(e), e)
+        except KeyError:
+            print(type(e), e)
+            break
+
+    return output
 
 
 def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=None):

@@ -13,6 +13,7 @@ import concurrent.futures
 import tiktoken
 import shortuuid
 import tqdm
+import wandb
 
 from add_markdown_info import count_markdown_elements, remove_pattern
 from utils import (
@@ -119,14 +120,21 @@ if __name__ == "__main__":
     parser.add_argument(
         "--endpoint-file", type=str, default="config/api_config.yaml"
     )
+    parser.add_argument(
+        "--wandb", type=bool, default=False
+    )
     args = parser.parse_args()
 
     settings = make_config(args.setting_file)
     endpoint_list = make_config(args.endpoint_file)
+    if args.wandb:
+        wandb_project = os.environ.get('WANDB_PROJECT', 'arena-hard-auto')
+        wandb_experiment = os.environ.get('WANDB_NAME', f'Experiment at {time.time()}')
+        print(f"Running gen answers with wandb! Project: {wandb_project}, Experiment: {wandb_experiment}")
+        wandb.init(project=wandb_project, name=wandb_experiment, resume=True)
 
     existing_answer = load_model_answers(os.path.join("data", settings["bench_name"], "model_answer"))
-    
-    print(settings)
+    print(f"Settings: {settings}")
 
     for model in settings["model_list"]:
         assert model in endpoint_list
@@ -142,7 +150,7 @@ if __name__ == "__main__":
             parallel = endpoint_info["parallel"]
         else:
             parallel = 1
-
+      
         # We want to maximizes the number of tokens generate per answer: max_tokens = specified token # - input tokens #
         if "tokenizer" in endpoint_info:
             question_list = [question["turns"][0]["content"] for question in questions]
@@ -160,6 +168,17 @@ if __name__ == "__main__":
                 max_tokens = [(settings["max_tokens"] - len(prompt) - 300) for prompt in tokens["input_ids"]]
         else:
             max_tokens = [settings["max_tokens"]] * len(questions)
+
+        if args.wandb:
+            # log current configuration for certain graph
+            model_config = {
+                'endpoint_info' : endpoint_info,
+                'question_file': question_file,
+                'answer_file': answer_file,
+                'parallel': parallel,
+                'max_tokens': max_tokens
+            }
+            wandb.config.update({f'{model}/config': model_config}, allow_val_change=True)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=parallel) as executor:
             futures = []
