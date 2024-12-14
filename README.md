@@ -12,6 +12,7 @@ Although both Arena-Hard-Auto and Chatbot Arena Category Hard ([See Blog](https:
 - [Install](#install-dependencies)
 - [Evaluation](#evaluate)
 - [Style Control Guide](#style-control)
+- [Citation](#citation)
 
 ## Style Control Leaderboard
 Following the newly introduced Style Control on Chatbot Arena, we release Style Control on Arena Hard Auto! We employ the same Style Control methods as proposed in the [blogpost](https://lmsys.org/blog/2024-08-28-style-control/). Please refer to the blogpost for methodology and technical background. 
@@ -304,7 +305,7 @@ To control for length and markdown separately, use `--length-control-only` and `
 Coming soon...
 
 ## Citation
-The code in this repository is mostly developed for or derived from the papers below. Please cite it if you find the repository helpful.
+The code in this repository is developed from the papers below. Please cite it if you find the repository helpful.
 ```
 @article{li2024crowdsourced,
   title={From Crowdsourced Data to High-Quality Benchmarks: Arena-Hard and BenchBuilder Pipeline},
