@@ -312,14 +312,6 @@ The code in this repository is mostly developed for or derived from the papers b
   journal={arXiv preprint arXiv:2406.11939},
   year={2024}
 }
-@misc{chiang2024chatbot,
-    title={Chatbot Arena: An Open Platform for Evaluating LLMs by Human Preference},
-    author={Wei-Lin Chiang and Lianmin Zheng and Ying Sheng and Anastasios Nikolas Angelopoulos and Tianle Li and Dacheng Li and Hao Zhang and Banghua Zhu and Michael Jordan and Joseph E. Gonzalez and Ion Stoica},
-    year={2024},
-    eprint={2403.04132},
-    archivePrefix={arXiv},
-    primaryClass={cs.AI}
-}
 @misc{arenahard2024,
     title = {From Live Data to High-Quality Benchmarks: The Arena-Hard Pipeline},
     url = {https://lmsys.org/blog/2024-04-19-arena-hard/},
