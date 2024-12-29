@@ -11,7 +11,7 @@ Although both Arena-Hard-Auto and Chatbot Arena Category Hard ([See Blog](https:
 - [Leaderboard](#leaderboard)
 - [Install](#install-dependencies)
 - [Evaluation](#evaluate)
-- [Style Control: a solution to mitigating biases](#style-control)
+- [Style Control: how to mitigate biases](#style-control)
 - [Evaluate Benchmarks: how to evaluate benchmarks](#evaluate-benchmarks)
 - [Citation](#citation)
 
