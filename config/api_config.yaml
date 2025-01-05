@@ -4,6 +4,7 @@
 #         - api_base: str
 #           api_key: str
 #           api_version: str optional (only for azure)
+#           model_path: str optional (only for local inference)
 #     api_type: str
 #     tokenizer: str optional (to optimize token limits)
 #     parallel: int

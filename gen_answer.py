@@ -27,6 +27,7 @@ from utils import (
     chat_completion_mistral,
     http_completion_gemini,
     chat_completion_cohere,
+    chat_completion_local,
     reorg_answer_file,
     OPENAI_MODEL_LIST,
     temperature_config,
@@ -80,12 +81,20 @@ def get_answer(
                                                 messages=conv,
                                                 temperature=temperature,
                                                 max_tokens=max_tokens)
-            else:
+            elif api_type == "openai":
                 output = chat_completion_openai(model=endpoint_info["model_name"], 
                                                 messages=conv, 
                                                 temperature=temperature, 
                                                 max_tokens=max_tokens, 
                                                 api_dict=api_dict)
+            elif api_type == "local":
+                output = chat_completion_local(model=endpoint_info["model_name"], 
+                                                messages=conv,
+                                                temperature=temperature,
+                                                max_tokens=max_tokens,
+                                                api_dict=api_dict)
+            else:
+                raise Exception(f"Unknown client: {api_type}")
             conv.append({"role": "assistant", "content": output})
 
             turns.append({"content": output})
@@ -208,8 +217,7 @@ if __name__ == "__main__":
                 future.result()
                 time_passed = time.time() - start_time
                 wandb.log({
-                    f"{model}/question_passed": question_index,
                     f"{model}/time_passed": time_passed
-                })
+                }, step=question_index)
 
         reorg_answer_file(answer_file)

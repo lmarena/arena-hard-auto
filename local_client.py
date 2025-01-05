@@ -1,48 +1,58 @@
-import sys
-import json
-import time
-import uuid
-import inspect
 import logging
 import warnings
 from typing import (
-    TYPE_CHECKING,
     Any,
     Dict,
-    Type,
-    Union,
-    Generic,
-    Mapping,
-    TypeVar,
-    Iterable,
-    Iterator,
-    Optional,
-    Generator,
-    AsyncIterator,
-    cast,
-    overload,
 )
-from typing_extensions import Literal, override, get_origin
 
 DEFAULT_MAX_RETRIES = 2
 DEFAULT_CONNECTION_LIMITS = 8
 DEFAULT_TIMEOUT = 60
 
+class ModelInference:
+    _model = None
+    _tokenizer = None
+
+    def __init__(self, model_name: str):
+        # self._tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+        # self._model = GPT2LMHeadModel.from_pretrained(model_name)
+        pass
+
+    def generate(self, messages, temperature: float, max_tokens: int):
+        # This will need to be updated with your specific inference needs.
+        """
+        with torch.no_grad():
+            message_batch = [self._tokenizer.encode(message) for message in messages]
+            outputs = [self._model.generate(message, do_sample=True, 
+                                 max_length=max_tokens,  
+                                 temperature=temperature) 
+                       for message in message_batch]
+            outputs = [self._tokenizer.decode(output) for output in outputs]
+        return outputs
+        """
+        pass
+
 class LocalClient:
-    _timeout = ...
-    _model = ...
+    _timeout = DEFAULT_TIMEOUT
+    _models: Dict[str, ModelInference] = {}
 
-    def __init__(self):
-        pass
+    def __init__(self, model_name: str, options: Dict[str, str]=None):
+        self._load_model(model_name, options)
 
-    def request(self):
-        pass
+    def run(self, messages, temperature: float, max_tokens: int):
+        model = self._models.get(model)
+        if model is None:
+            raise KeyError(f"Model: {model} not found.")
+        return model.generate(messages, temperature, max_tokens)
 
-    def start(self):
-        pass
+    def _load_model(self, model_name, options):
+        if model_name not in self._models:
+            self._models[model_name] = ModelInference(model_name, options)
 
-    def close(self):
-        pass
+
+def load_local_client(model_name, api_dict):
+    client = LocalClient(model_name, api_dict)
+    return client
 
 """
 class SyncAPIClient:

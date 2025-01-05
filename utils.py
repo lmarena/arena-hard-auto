@@ -7,7 +7,7 @@ import requests
 
 from typing import Optional
 from glob import glob
-from .local_client import LocalClient
+from local_client import LocalClient
 
 # API setting constants
 API_MAX_RETRY = 16
@@ -95,7 +95,7 @@ def make_config(config_file: str) -> dict:
     return config_kwargs
 
 
-def chat_completion_local(model, messages, temperature, max_tokens, api_dict=None):
+def chat_completion_local(model: str, messages, temperature: float, max_tokens: int, api_dict=None):
     client = LocalClient(
         model=model,
         options=api_dict,
