@@ -140,8 +140,12 @@ if __name__ == "__main__":
     settings = make_config(args.setting_file)
     endpoint_list = make_config(args.endpoint_file)
     if args.wandb:
+        wandb_key = os.environ.get('WANDB_API_KEY', None)
         wandb_project = os.environ.get('WANDB_PROJECT', 'arena-hard-auto')
         wandb_experiment = os.environ.get('WANDB_NAME', f'Experiment at {time.time()}')
+        assert wandb_key is not None, "WANDB_API_KEY is not set, but wandb option is present"
+        print(f"Logging in to wandb...")
+        wandb.login(key=wandb_key)
         print(f"Running gen answers with wandb! Project: {wandb_project}, Experiment: {wandb_experiment}")
         wandb.init(project=wandb_project, name=wandb_experiment, resume=True)
     max_answers = args.max_answers
