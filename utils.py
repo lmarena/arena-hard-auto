@@ -76,7 +76,7 @@ def load_model_answers(answer_dir: str):
 
 
 def get_endpoint(endpoint_list):
-    if endpoint_list is None:
+    if not endpoint_list:
         return None
     assert endpoint_list is not None
     # randomly pick one

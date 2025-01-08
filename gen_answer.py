@@ -159,6 +159,7 @@ if __name__ == "__main__":
         assert isinstance(model, str)
         assert model in endpoint_list
         endpoint_info = endpoint_list[model]
+        print(f"Running for model {model} with endpoint {endpoint_info}")
 
         question_file = os.path.join("data", settings["bench_name"], "question.jsonl")
         questions = load_questions(question_file)
@@ -212,6 +213,7 @@ if __name__ == "__main__":
                 if model in existing_answer and question["question_id"] in existing_answer[model]:
                     count += 1
                     continue
+                print(f"endpoint_list: {endpoint_info["endpoints"]}")
                 future = executor.submit(
                     get_answer,
                     question,
@@ -231,8 +233,11 @@ if __name__ == "__main__":
             ):
                 future.result()
                 time_passed = time.time() - start_time
-                wandb.log({
-                    f"{model}/time_passed": time_passed
-                }, step=question_index)
+                if args.wandb:
+                    wandb.log({
+                        f"{model}/time_passed": time_passed
+                    }, step=question_index)
 
         reorg_answer_file(answer_file)
+        if args.wandb:
+            wandb.finish()
