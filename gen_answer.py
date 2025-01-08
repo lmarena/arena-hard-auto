@@ -213,7 +213,7 @@ if __name__ == "__main__":
                 if model in existing_answer and question["question_id"] in existing_answer[model]:
                     count += 1
                     continue
-                print(f"endpoint_list: {endpoint_info["endpoints"]}")
+                print(f"endpoint_list: {endpoint_info['endpoints']}")
                 future = executor.submit(
                     get_answer,
                     question,
