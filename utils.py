@@ -133,6 +133,7 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         try:
+            print(f"model: {model}\nmessages: {messages}\ntemperature: {temperature}\nmax_tokens: {max_tokens}")
             completion = client.chat.completions.create(
                 model=model,
                 messages=messages,
