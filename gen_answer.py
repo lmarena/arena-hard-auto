@@ -130,7 +130,10 @@ if __name__ == "__main__":
         "--endpoint-file", type=str, default="config/api_config.yaml"
     )
     parser.add_argument(
-        "--wandb", type=bool, default=False
+        "--wandb", action='store_true', help="Turns on logging with wandb, will use environment variables for it"
+    )
+    parser.add_argument(
+        "--max-answers", type=int, default=None
     )
     args = parser.parse_args()
 
@@ -141,6 +144,7 @@ if __name__ == "__main__":
         wandb_experiment = os.environ.get('WANDB_NAME', f'Experiment at {time.time()}')
         print(f"Running gen answers with wandb! Project: {wandb_project}, Experiment: {wandb_experiment}")
         wandb.init(project=wandb_project, name=wandb_experiment, resume=True)
+    max_answers = args.max_answers
 
     existing_answer = load_model_answers(os.path.join("data", settings["bench_name"], "model_answer"))
     print(f"Settings: {settings}")
@@ -193,7 +197,7 @@ if __name__ == "__main__":
         with concurrent.futures.ThreadPoolExecutor(max_workers=parallel) as executor:
             futures = []
             count = 0
-            for index, question in enumerate(questions):
+            for index, question in enumerate(questions[:max_answers]):
                 if model in existing_answer and question["question_id"] in existing_answer[model]:
                     count += 1
                     continue
