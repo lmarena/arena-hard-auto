@@ -156,6 +156,10 @@ if __name__ == "__main__":
         question_file = os.path.join("data", settings["bench_name"], "question.jsonl")
         questions = load_questions(question_file)
 
+        if max_answers:
+            print(f"Will be cutting questions down to {max_answers} according to max-answers")
+            questions = questions[:max_answers]
+
         answer_file = os.path.join("data", settings["bench_name"], "model_answer", f"{model}.jsonl")
         print(f"Output to {answer_file}")
 
@@ -197,7 +201,7 @@ if __name__ == "__main__":
         with concurrent.futures.ThreadPoolExecutor(max_workers=parallel) as executor:
             futures = []
             count = 0
-            for index, question in enumerate(questions[:max_answers]):
+            for index, question in enumerate(questions):
                 if model in existing_answer and question["question_id"] in existing_answer[model]:
                     count += 1
                     continue
