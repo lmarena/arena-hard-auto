@@ -153,7 +153,10 @@ if __name__ == "__main__":
     existing_answer = load_model_answers(os.path.join("data", settings["bench_name"], "model_answer"))
     print(f"Settings: {settings}")
 
-    for model in settings["model_list"].keys():
+    for model in settings["model_list"]:
+        if isinstance(model, dict):
+            model = list(model.keys())[0]
+        assert isinstance(model, str)
         assert model in endpoint_list
         endpoint_info = endpoint_list[model]
 
