@@ -162,12 +162,13 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
         except KeyError:
             print(type(e), e)
             break
-        except e:
+        except Exception as e:
             try:
                 models = client.models.list()
                 print(f"Api Client got available models: {models}, however something went wrong for {model}")
             except:
                 print(f"Api Client unreachable")
+            print(type(e), e)
             raise
     return output
 
