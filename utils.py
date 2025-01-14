@@ -144,6 +144,7 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
         client = openai.OpenAI()
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
+        completion = None
         try:
             completion = client.chat.completions.create(
                 model=model,
@@ -160,7 +161,7 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
             print(f"Bad request, messages: {messages}")
             print(type(e), e)
         except KeyError:
-            print(type(e), e)
+            print(type(e), e, completion)
             break
         except Exception as e:
             try:
@@ -168,7 +169,7 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
                 print(f"Api Client got available models: {models}, however something went wrong for {model}")
             except:
                 print(f"Api Client unreachable")
-            print(type(e), e)
+            print(type(e), e, completion)
             raise
     return output
 
