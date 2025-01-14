@@ -21,6 +21,7 @@ from utils import (
     load_model_answers,
     make_config,
     get_endpoint,
+    no_proxy,
     chat_completion_openai,
     chat_completion_anthropic,
     chat_completion_openai_azure,
@@ -82,11 +83,12 @@ def get_answer(
                                                 temperature=temperature,
                                                 max_tokens=max_tokens)
             elif api_type == "openai":
-                output = chat_completion_openai(model=endpoint_info["model_name"], 
-                                                messages=conv, 
-                                                temperature=temperature, 
-                                                max_tokens=max_tokens, 
-                                                api_dict=api_dict)
+                with no_proxy():
+                    output = chat_completion_openai(model=endpoint_info["model_name"], 
+                                                    messages=conv, 
+                                                    temperature=temperature, 
+                                                    max_tokens=max_tokens, 
+                                                    api_dict=api_dict)
             elif api_type == "local":
                 output = chat_completion_local(model=endpoint_info["model_name"], 
                                                 messages=conv,

@@ -8,6 +8,19 @@ import requests
 from typing import Optional
 from glob import glob
 from local_client import LocalClient
+from contextlib import contextmanager
+
+@contextmanager
+def no_proxy():
+    original_http_proxy = os.environ.pop('http_proxy', None)
+    original_https_proxy = os.environ.pop('https_proxy', None)
+    try:
+        yield
+    finally:
+        if original_http_proxy is not None:
+            os.environ['http_proxy'] = original_http_proxy
+        if original_https_proxy is not None:
+            os.environ['https_proxy'] = original_https_proxy
 
 # API setting constants
 API_MAX_RETRY = 16
@@ -119,7 +132,6 @@ def chat_completion_local(model: str, messages, temperature: float, max_tokens: 
             break
 
     return output
-
 
 def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=None):
     import openai
