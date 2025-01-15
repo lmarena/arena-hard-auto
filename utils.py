@@ -152,10 +152,14 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
-            if isinstance(completion, openai.ChatCompletion):
-                output = completion.choices[0].message.content
+            choice = completion.choices[0]
+            if hasattr(choice, 'message'):
+                output = choice.message.content
+            elif isinstance(choice, dict) and 'message' in choice:
+                output = choice['message']['content']
             else:
-                output = completion.choices[0]['message']['content']
+                output = None
+                raise TypeError(f"Unexpected choice structure: {choice}")
             break
         except openai.RateLimitError as e:
             print(type(e), e)
