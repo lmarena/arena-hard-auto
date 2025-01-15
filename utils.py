@@ -169,7 +169,8 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
                 print(f"Api Client got available models: {models}, however something went wrong for {model}")
             except:
                 print(f"Api Client unreachable")
-            print(type(e), e, completion)
+            print(type(e), e)
+            print(f"Received completion: {completion}")
             raise
     return output
 
