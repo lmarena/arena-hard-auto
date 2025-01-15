@@ -135,6 +135,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--max-answers", type=int, default=None
     )
+    parser.add_argument(
+        "--save-path", type=str, default=None
+    )
     args = parser.parse_args()
 
     settings = make_config(args.setting_file)
@@ -149,7 +152,6 @@ if __name__ == "__main__":
         print(f"Running gen answers with wandb! Project: {wandb_project}, Experiment: {wandb_experiment}")
         wandb.init(project=wandb_project, name=wandb_experiment, resume=True)
     max_answers = args.max_answers
-
     existing_answer = load_model_answers(os.path.join("data", settings["bench_name"], "model_answer"))
     print(f"Settings: {settings}")
 
@@ -168,7 +170,7 @@ if __name__ == "__main__":
             print(f"Will be cutting questions down to {max_answers} according to max-answers")
             questions = questions[:max_answers]
 
-        answer_file = os.path.join("data", settings["bench_name"], "model_answer", f"{model}.jsonl")
+        answer_file = args.save_path or os.path.join("data", settings["bench_name"], "model_answer", f"{model}.jsonl")
         print(f"Output to {answer_file}")
 
         if "parallel" in endpoint_info:
