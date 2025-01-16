@@ -152,7 +152,10 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
-            choice = completion.choices[0]
+            if completion.choices is not None:
+                choice = completion.choices[0]
+            else:
+                choice = completion.response.choices[0]
             if hasattr(choice, 'message'):
                 output = choice.message.content
             elif isinstance(choice, dict) and 'message' in choice:
