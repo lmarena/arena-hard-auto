@@ -145,6 +145,7 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         completion = None
+        choice = None
         try:
             completion = client.chat.completions.create(
                 model=model,
@@ -155,7 +156,10 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
             if completion.choices is not None:
                 choice = completion.choices[0]
             else:
-                choice = completion.response.choices[0]
+                if hasattr(completion.response, 'choices'):
+                    choice = completion.response.choices[0]
+                else:
+                    choice = completion.response["choices"][0]
             if hasattr(choice, 'message'):
                 output = choice.message.content
             elif isinstance(choice, dict) and 'message' in choice:
