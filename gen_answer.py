@@ -6,15 +6,14 @@ python gen_api_answer --parallel 32
 import argparse
 import json
 import os
-import re
 import time
-import concurrent.futures
-
-import tiktoken
 import shortuuid
+import concurrent.futures
+from queue import Queue
+from threading import Thread
 import tqdm
 
-from add_markdown_info import count_markdown_elements, remove_pattern
+import tiktoken
 from utils import (
     load_questions,
     load_model_answers,
@@ -31,9 +30,8 @@ from utils import (
     temperature_config,
 )
 
-
 def get_answer(
-    question: dict, model: str, endpoint_info: dict, num_choices: int, max_tokens: int, temperature: float, answer_file: str, api_dict: dict
+    question: dict, model: str, endpoint_info: dict, num_choices: int, max_tokens: int, temperature: float, queue: Queue, api_dict: dict
 ):
     if question["category"] in temperature_config:
         temperature = temperature_config[question["category"]]
@@ -87,10 +85,10 @@ def get_answer(
                                                 api_dict=api_dict)
             conv.append({"role": "assistant", "content": output})
 
-            turns.append({"content": output})
+            turns.append({"content": output, "token_len": len(encoding.encode(output, disallowed_special=()))})
         choices.append({"index": i, "turns": turns})
-    
-    # Dump answers
+
+    # Prepare the answer to be written to the queue
     ans = {
         "question_id": question["question_id"],
         "answer_id": shortuuid.uuid(),
@@ -98,18 +96,17 @@ def get_answer(
         "choices": choices,
         "tstamp": time.time(),
     }
-    
-    if len(choices) == len(turns) == 1:
-        metadata = {"token_len": len(encoding.encode(output, 
-                                                     disallowed_special=()))}
-        ans["conv_metadata"] = metadata | count_markdown_elements(remove_pattern(output, 
-                                                                     re.compile("```([^`]*)```")),
-                                                                 suffix="")
 
-    os.makedirs(os.path.dirname(answer_file), exist_ok=True)
+    queue.put(json.dumps(ans))
+
+def writer_thread(queue: Queue, answer_file: str):
     with open(answer_file, "a") as fout:
-        fout.write(json.dumps(ans) + "\n")
-
+        while True:
+            data = queue.get()
+            if data is None:  # Sentinel to stop the thread
+                break
+            fout.write(data + "\n")
+            queue.task_done()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -125,7 +122,7 @@ if __name__ == "__main__":
     endpoint_list = make_config(args.endpoint_file)
 
     existing_answer = load_model_answers(os.path.join("data", settings["bench_name"], "model_answer"))
-    
+
     print(settings)
 
     for model in settings["model_list"]:
@@ -143,7 +140,6 @@ if __name__ == "__main__":
         else:
             parallel = 1
 
-        # We want to maximizes the number of tokens generate per answer: max_tokens = specified token # - input tokens #
         if "tokenizer" in endpoint_info:
             question_list = [question["turns"][0]["content"] for question in questions]
             if model in OPENAI_MODEL_LIST:
@@ -152,7 +148,7 @@ if __name__ == "__main__":
                 max_tokens = [(settings["max_tokens"] - len(token) - 100) for token in tokens]
             else:
                 from transformers import AutoTokenizer
-                
+
                 os.environ["TOKENIZERS_PARALLELISM"] = "false"
                 tokenizer = AutoTokenizer.from_pretrained(endpoint_info["tokenizer"])
 
@@ -160,6 +156,10 @@ if __name__ == "__main__":
                 max_tokens = [(settings["max_tokens"] - len(prompt) - 300) for prompt in tokens["input_ids"]]
         else:
             max_tokens = [settings["max_tokens"]] * len(questions)
+
+        queue = Queue()
+        writer = Thread(target=writer_thread, args=(queue, answer_file))
+        writer.start()
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=parallel) as executor:
             futures = []
@@ -176,15 +176,16 @@ if __name__ == "__main__":
                     settings["num_choices"],
                     max_tokens[index],
                     settings["temperature"],
-                    answer_file,
+                    queue,
                     get_endpoint(endpoint_info["endpoints"]),
                 )
                 futures.append(future)
             if count > 0:
                 print(f"{count} number of existing answers")
-            for future in tqdm.tqdm(
-                concurrent.futures.as_completed(futures), total=len(futures)
-            ):
-                future.result()
+            for _ in tqdm.tqdm(concurrent.futures.as_completed(futures), total=len(futures)):
+                pass
+
+        queue.put(None)  # Send sentinel to stop the writer thread
+        writer.join()
 
         reorg_answer_file(answer_file)
