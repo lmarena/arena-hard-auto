@@ -12,6 +12,7 @@ import concurrent.futures
 from queue import Queue
 from threading import Thread
 import tqdm
+import re
 
 import tiktoken
 from utils import (
@@ -28,10 +29,12 @@ from utils import (
     reorg_answer_file,
     OPENAI_MODEL_LIST,
     temperature_config,
+    count_markdown_elements,
+    remove_pattern
 )
 
 def get_answer(
-    question: dict, model: str, endpoint_info: dict, num_choices: int, max_tokens: int, temperature: float, queue: Queue, api_dict: dict
+    question: dict, model: str, endpoint_info: dict, num_choices: int, max_tokens: int, temperature: float, queue: Queue, api_dict: dict, answer_file: str
 ):
     if question["category"] in temperature_config:
         temperature = temperature_config[question["category"]]
@@ -88,7 +91,6 @@ def get_answer(
             turns.append({"content": output, "token_len": len(encoding.encode(output, disallowed_special=()))})
         choices.append({"index": i, "turns": turns})
 
-    # Prepare the answer to be written to the queue
     ans = {
         "question_id": question["question_id"],
         "answer_id": shortuuid.uuid(),
@@ -96,6 +98,17 @@ def get_answer(
         "choices": choices,
         "tstamp": time.time(),
     }
+
+    if len(choices) == len(turns) == 1:
+        metadata = {"token_len": len(encoding.encode(output, disallowed_special=()))}
+        ans["conv_metadata"] = metadata | count_markdown_elements(
+            remove_pattern(output, re.compile("```([^`]*)```")),
+            suffix=""
+        )
+
+    os.makedirs(os.path.dirname(answer_file), exist_ok=True)
+    with open(answer_file, "a") as fout:
+        fout.write(json.dumps(ans) + "\n")
 
     queue.put(json.dumps(ans))
 
@@ -178,6 +191,7 @@ if __name__ == "__main__":
                     settings["temperature"],
                     queue,
                     get_endpoint(endpoint_info["endpoints"]),
+                    answer_file
                 )
                 futures.append(future)
             if count > 0:
