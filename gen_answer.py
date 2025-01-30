@@ -82,11 +82,13 @@ def get_answer(
                                                 temperature=temperature,
                                                 max_tokens=max_tokens)
             elif api_type == "openai":
+                response_format = endpoint_info.get("output_structured")
                 output = chat_completion_openai(model=endpoint_info["model_name"], 
                                                 messages=conv, 
                                                 temperature=temperature, 
                                                 max_tokens=max_tokens, 
-                                                api_dict=api_dict)
+                                                api_dict=api_dict,
+                                                response_format=response_format)
             elif api_type == "local":
                 output = chat_completion_local(model=endpoint_info["model_name"], 
                                                 messages=conv,

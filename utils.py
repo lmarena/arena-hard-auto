@@ -133,7 +133,7 @@ def chat_completion_local(model: str, messages, temperature: float, max_tokens: 
 
     return output
 
-def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=None):
+def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=None, response_format=None):
     import openai
     if api_dict:
         client = openai.OpenAI(
@@ -142,17 +142,20 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
         )
     else:
         client = openai.OpenAI()
+    
+    chat_completion_args = {
+        "model" : model,
+        "messages" : messages,
+        "temperature" : temperature,
+        "max_tokens" : max_tokens,
+        "response_format" : {"json_schema": response_format} if response_format else None
+    }
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         completion = None
         choice = None
         try:
-            completion = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
+            completion = client.chat.completions.create(**chat_completion_args)
             if completion.choices is not None:
                 choice = completion.choices[0]
             else:
