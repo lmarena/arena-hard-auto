@@ -19,6 +19,7 @@ from add_markdown_info import count_markdown_elements, remove_pattern
 from utils import (
     load_questions,
     load_model_answers,
+    load_structure_file,
     make_config,
     get_endpoint,
     chat_completion_openai,
@@ -156,6 +157,19 @@ if __name__ == "__main__":
     max_answers = args.max_answers
     existing_answer = load_model_answers(os.path.join("data", settings["bench_name"], "model_answer"))
     print(f"Settings: {settings}")
+
+    # Loading templates if they are set
+    for model in settings["model_list"]:
+        if isinstance(model, dict):
+            model = list(model.keys())[0]
+        assert isinstance(model, str)
+        assert model in endpoint_list
+        structure_config = endpoint_list[model].get("output_structured")
+        if not structure_config:
+            continue
+        if not os.path.exists(structure_config):
+            raise RuntimeError("Could not find the output structure file while it was set. Please check that path: \"{structure_config}\" is correct")
+        endpoint_list[model]["output_structured"] = load_structure_file(structure_config)
 
     for model in settings["model_list"]:
         if isinstance(model, dict):

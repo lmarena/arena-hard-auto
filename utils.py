@@ -107,6 +107,28 @@ def make_config(config_file: str) -> dict:
 
     return config_kwargs
 
+# load output srtucture in either json or yson format
+def load_structure_file(file_path):
+    _, file_extension = os.path.splitext(file_path)
+    if file_extension.lower() == '.json':
+        with open(file_path, 'r') as file:
+            return json.load(file)
+
+    if file_extension.lower() == '.yaml':
+        with open(file_path, 'rb') as file:
+            return yaml.load(file, Loader=yaml.SafeLoader)
+
+    try:
+        with open(file_path, 'r') as file:
+            return json.load(file)
+    except json.JSONDecodeError:
+        pass
+    try:
+        with open(file_path, 'rb') as file:
+            return yaml.load(file, Loader=yaml.SafeLoader)
+    except yaml.YsonError:
+        pass
+    raise RuntimeError(f"Failed to parse the structure file: {file_path}. Ensure it is valid JSON or YAML.")
 
 def chat_completion_local(model: str, messages, temperature: float, max_tokens: int, api_dict=None):
     client = LocalClient(

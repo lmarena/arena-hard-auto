@@ -9,7 +9,7 @@
 #     tokenizer: str optional (to optimize token limits)
 #     parallel: int
 #     system_prompt: str optional (add system instruction when generating model answer)
-#     output_structured: str optional (add json format for structured answer generation)
+#     output_structured: str optional (add json format for structured answer generation) providing a path to the file with structured configuration
 
 gpt-3.5-turbo-0125:
     model_name: gpt-3.5-turbo-0125
