@@ -22,6 +22,15 @@ def no_proxy():
         if original_https_proxy is not None:
             os.environ['https_proxy'] = original_https_proxy
 
+def log_message(message):
+    if len(message) > 150:
+        print(f"{time.time()}: {message[:50]}...{message[-50:]}")
+    else:
+        print(f"{time.time()}: {message}")
+
+def log_error(e):
+    print(f"{time.time()}: {type(e)}: {e}")
+
 # API setting constants
 API_MAX_RETRY = 16
 API_RETRY_SLEEP = 10
@@ -145,12 +154,12 @@ def chat_completion_local(model: str, messages, temperature: float, max_tokens: 
             )
             break
         except client.RateLimitError as e:
-            print(type(e), e)
+            log_error(e)
             time.sleep(API_RETRY_SLEEP)
         except client.BadRequestError as e:
-            print(type(e), e)
+            log_error(e)
         except KeyError:
-            print(type(e), e)
+            log_error(e)
             break
 
     return output
@@ -194,22 +203,22 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
                 raise TypeError(f"Unexpected choice structure: {choice}")
             break
         except openai.RateLimitError as e:
-            print(type(e), e)
+            log_error(e)
             time.sleep(API_RETRY_SLEEP)
         except openai.BadRequestError as e:
-            print(f"Bad request, messages: {messages}")
-            print(type(e), e)
+            log_message(f"Bad request, messages: {messages}")
+            log_error(e)
         except KeyError:
             print(type(e), e, completion)
             break
         except Exception as e:
             try:
                 models = client.models.list()
-                print(f"Api Client got available models: {models}, however something went wrong for {model}")
+                log_message(f"Api Client got available models: {models}, however something went wrong for {model}")
             except:
-                print(f"Api Client unreachable")
-            print(type(e), e)
-            print(f"Received completion: {completion}")
+                log_message(f"Api Client unreachable")
+            log_error(e)
+            log_message(f"Received completion: {completion}")
             raise
     return output
 
@@ -241,13 +250,13 @@ def chat_completion_openai_azure(model, messages, temperature, max_tokens, api_d
             output = response.choices[0].message.content
             break
         except openai.RateLimitError as e:
-            print(type(e), e)
+            log_error(e)
             time.sleep(API_RETRY_SLEEP)
         except openai.BadRequestError as e:
-            print(type(e), e)
+            log_error(e)
             break
         except KeyError:
-            print(type(e), e)
+            log_error(e)
             break
 
     return output
@@ -281,7 +290,7 @@ def chat_completion_anthropic(model, messages, temperature, max_tokens, api_dict
             output = response.content[0].text
             break
         except anthropic.APIError as e:
-            print(type(e), e)
+            log_error(e)
             time.sleep(API_RETRY_SLEEP)
     return output
 
@@ -308,7 +317,7 @@ def chat_completion_mistral(model, messages, temperature, max_tokens):
             output = chat_response.choices[0].message.content
             break
         except MistralException as e:
-            print(type(e), e)
+            log_error(e)
             break
 
     return output
@@ -398,10 +407,10 @@ def chat_completion_cohere(model, messages, temperature, max_tokens):
             output = response.text
             break
         except cohere.core.api_error.ApiError as e:
-            print(type(e), e)
+            log_error(e)
             raise
         except Exception as e:
-            print(type(e), e)
+            log_error(e)
             break
     
     return output
