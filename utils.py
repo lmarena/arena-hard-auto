@@ -24,7 +24,7 @@ def no_proxy():
 
 def log_message(message):
     if len(message) > 150:
-        print(f"{time.time()}: {message[:50]}...{message[-50:]}")
+        print(f"{time.time()}: {message[:100]}...{message[-20:]}")
     else:
         print(f"{time.time()}: {message}")
 
@@ -178,29 +178,62 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
         "model" : model,
         "messages" : messages,
         "temperature" : temperature,
-        "max_tokens" : max_tokens,
-        "response_format" : {"json_schema": response_format} if response_format else None
+        "max_tokens" : max_tokens
     }
-    output = API_ERROR_OUTPUT
+
+    if response_format is not None:
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "geointent_analysis",
+                    "description": "Perform the geointent analysis according to the JSON schema",
+                    "parameters": response_format,
+                }
+            }
+        ]
+        chat_completion_args["tools"] = tools
+        chat_completion_args["tool_choice"] = {"type": "function", "function": {"name": "geointent_analysis"}}
+
+    def parse_completion(completion):
+        if completion.choices is not None:
+            choice = completion.choices[0]
+        else:
+            if hasattr(completion.response, 'choices'):
+                choice = completion.response.choices[0]
+            else:
+                choice = completion.response["choices"][0]
+
+        if hasattr(choice, 'message'):
+            message = choice.message
+        elif isinstance(choice, dict) and 'message' in choice:
+            message = choice['message']
+        else:
+            raise TypeError(f"Unexpected choice structure: {choice}")
+
+        content = None
+        if response_format is not None:
+            if hasattr(message, 'tool_calls') and len(message.tool_calls) != 0:
+                content = message.tool_calls[0].function.arguments
+            elif isinstance(message, dict) and 'tool_calls' in message and len(message['tool_calls']) != 0:
+                content = message['tool_calls'][0].function.arguments
+            else:
+                raise TypeError(f"Unexpected choice structure: {choice}")
+        else:
+            if hasattr(message, 'content'):
+                content = message.content
+            elif isinstance(message, dict) and 'content' in message:
+                content = message['content']
+            else:
+                raise TypeError(f"Unexpected choice structure: {choice}")
+        return content
+
+    content = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         completion = None
-        choice = None
         try:
             completion = client.chat.completions.create(**chat_completion_args)
-            if completion.choices is not None:
-                choice = completion.choices[0]
-            else:
-                if hasattr(completion.response, 'choices'):
-                    choice = completion.response.choices[0]
-                else:
-                    choice = completion.response["choices"][0]
-            if hasattr(choice, 'message'):
-                output = choice.message.content
-            elif isinstance(choice, dict) and 'message' in choice:
-                output = choice['message']['content']
-            else:
-                output = None
-                raise TypeError(f"Unexpected choice structure: {choice}")
+            content = parse_completion(completion)
             break
         except openai.RateLimitError as e:
             log_error(e)
@@ -218,9 +251,9 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
             except:
                 log_message(f"Api Client unreachable")
             log_error(e)
-            log_message(f"Received completion: {completion}")
+            print(f"Received completion: {completion}")
             raise
-    return output
+    return content
 
 
 def chat_completion_openai_azure(model, messages, temperature, max_tokens, api_dict=None):

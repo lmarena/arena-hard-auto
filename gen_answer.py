@@ -32,6 +32,7 @@ from utils import (
     reorg_answer_file,
     OPENAI_MODEL_LIST,
     temperature_config,
+    log_message
 )
 
 
@@ -150,9 +151,9 @@ if __name__ == "__main__":
         wandb_project = os.environ.get('WANDB_PROJECT', 'arena-hard-auto')
         wandb_experiment = os.environ.get('WANDB_NAME', f'Experiment at {time.time()}')
         assert wandb_key is not None, "WANDB_API_KEY is not set, but wandb option is present"
-        print(f"Logging in to wandb...")
+        log_message(f"Logging in to wandb...")
         wandb.login(key=wandb_key)
-        print(f"Running gen answers with wandb! Project: {wandb_project}, Experiment: {wandb_experiment}")
+        log_message(f"Running gen answers with wandb! Project: {wandb_project}, Experiment: {wandb_experiment}")
         wandb.init(project=wandb_project, name=wandb_experiment, resume=True)
     max_answers = args.max_answers
     existing_answer = load_model_answers(os.path.join("data", settings["bench_name"], "model_answer"))
@@ -177,17 +178,17 @@ if __name__ == "__main__":
         assert isinstance(model, str)
         assert model in endpoint_list
         endpoint_info = endpoint_list[model]
-        print(f"Running for model {model} with endpoint {endpoint_info}")
+        log_message(f"Running for model {model} with endpoint {endpoint_info}")
 
         question_file = os.path.join("data", settings["bench_name"], "question.jsonl")
         questions = load_questions(question_file)
 
         if max_answers:
-            print(f"Will be cutting questions down to {max_answers} according to max-answers")
+            log_message(f"Will be cutting questions down to {max_answers} according to max-answers")
             questions = questions[:max_answers]
 
         answer_file = args.save_path or os.path.join("data", settings["bench_name"], "model_answer", f"{model}.jsonl")
-        print(f"Output to {answer_file}")
+        log_message(f"Output to {answer_file}")
 
         if "parallel" in endpoint_info:
             parallel = endpoint_info["parallel"]
@@ -244,7 +245,7 @@ if __name__ == "__main__":
                 )
                 futures.append(future)
             if count > 0:
-                print(f"{count} number of existing answers")
+                log_message(f"{count} number of existing answers")
             for question_index, future in tqdm.tqdm(
                 enumerate(concurrent.futures.as_completed(futures)), total=len(futures)
             ):
