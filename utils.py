@@ -182,18 +182,7 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
     }
 
     if response_format is not None:
-        tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "geointent_analysis",
-                    "description": "Perform the geointent analysis according to the JSON schema",
-                    "parameters": response_format,
-                }
-            }
-        ]
-        chat_completion_args["tools"] = tools
-        chat_completion_args["tool_choice"] = {"type": "function", "function": {"name": "geointent_analysis"}}
+        chat_completion_args["extra_body"] = {"guided_json": response_format}
 
     def parse_completion(completion):
         if completion.choices is not None:
@@ -211,21 +200,12 @@ def chat_completion_openai(model, messages, temperature, max_tokens, api_dict=No
         else:
             raise TypeError(f"Unexpected choice structure: {choice}")
 
-        content = None
-        if response_format is not None:
-            if hasattr(message, 'tool_calls') and len(message.tool_calls) != 0:
-                content = message.tool_calls[0].function.arguments
-            elif isinstance(message, dict) and 'tool_calls' in message and len(message['tool_calls']) != 0:
-                content = message['tool_calls'][0].function.arguments
-            else:
-                raise TypeError(f"Unexpected choice structure: {choice}")
+        if hasattr(message, 'content'):
+            content = message.content
+        elif isinstance(message, dict) and 'content' in message:
+            content = message['content']
         else:
-            if hasattr(message, 'content'):
-                content = message.content
-            elif isinstance(message, dict) and 'content' in message:
-                content = message['content']
-            else:
-                raise TypeError(f"Unexpected choice structure: {choice}")
+            raise TypeError(f"Unexpected choice structure: {choice}")
         return content
 
     content = API_ERROR_OUTPUT
