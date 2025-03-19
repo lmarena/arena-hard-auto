@@ -20,6 +20,7 @@ Following the newly introduced Style Control on Chatbot Arena, we release Style 
 
 (Updated: 11/14)
 ```console
+Llama-3.3-Nemotron-Super-49B-v1| score: 88.7  | 95% CI: (-2.3, 2.2)  | average #tokens: 1217
 claude-3-5-sonnet-20241022     | score: 86.4  | 95% CI: (-1.3, 1.3)  | average #tokens: 691                
 claude-3-5-sonnet-20240620     | score: 82.2  | 95% CI: (-1.9, 1.6)  | average #tokens: 567                
 o1-preview-2024-09-12          | score: 81.7  | 95% CI: (-2.2, 2.1)  | average #tokens: 1193                      
@@ -99,6 +100,7 @@ The following leaderboard has no style control.
 
 (Updated: 11/14)
 ```console
+Llama-3.3-Nemotron-Super-49B-v1| score: 93.4  | 95% CI: (-1.1, 1.0)  | average #tokens: 1217
 o1-mini-2024-09-12             | score: 92.0  | 95% CI: (-1.2, 1.0)  | average #tokens: 1399                                                     
 o1-preview-2024-09-12          | score: 90.4  | 95% CI: (-1.1, 1.3)  | average #tokens: 1193
 claude-3-5-sonnet-20241022     | score: 85.2  | 95% CI: (-1.4, 1.6)  | average #tokens: 691
