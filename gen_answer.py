@@ -14,6 +14,8 @@ import tiktoken
 import shortuuid
 import tqdm
 
+from vllm import LLM, SamplingParams
+
 from add_markdown_info import count_markdown_elements, remove_pattern
 from utils import (
     load_questions,
@@ -131,6 +133,11 @@ if __name__ == "__main__":
     for model in settings["model_list"]:
         assert model in endpoint_list
         endpoint_info = endpoint_list[model]
+
+        llm = None
+        if "endpoints" not in endpoint_info or not endpoint_info["endpoints"]:
+            print(f"Initializing vLLM for model: {model}")
+            llm = LLM(model=endpoint_info["model_name"], tensor_parallel_size = endpoint_info["parallel"])
 
         question_file = os.path.join("data", settings["bench_name"], "question.jsonl")
         questions = load_questions(question_file)
