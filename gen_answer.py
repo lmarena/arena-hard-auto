@@ -134,6 +134,7 @@ if __name__ == "__main__":
         assert model in endpoint_list
         endpoint_info = endpoint_list[model]
 
+        # check if user wants to use endpoint or a vllm based model
         llm = None
         if "endpoints" not in endpoint_info or not endpoint_info["endpoints"]:
             print(f"Initializing vLLM for model: {model}")
