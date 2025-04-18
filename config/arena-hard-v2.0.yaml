@@ -1,0 +1,21 @@
+# judge_model: gpt-4.5-preview (This judge is goated)
+
+judge_model: gemini-2.5
+temperature: 1.0
+max_tokens: 32000
+
+# judge_model: gpt-4.1
+# temperature: 0.0
+# max_tokens: 16000
+
+bench_name: arena-hard-v2.0
+
+reference: null
+
+regex_pattern: \[\[([AB<>=]+)\]\]
+
+prompt_template: "<|User Prompt|>\n{QUESTION}\n\n<|The Start of Assistant A's Answer|>\n{ANSWER_A}\n<|The End of Assistant A's Answer|>\n\n<|The Start of Assistant B's Answer|>\n{ANSWER_B}\n<|The End of Assistant B's Answer|>"
+
+model_list:
+  - deepseek-r1
+
