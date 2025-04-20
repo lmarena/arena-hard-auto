@@ -173,7 +173,7 @@ You can review individual judgment results using our UI code.
 ## Style Control
 Following the newly introduced Style Control on Chatbot Arena, we release Style Control on Arena Hard Auto! We employ the same Style Control methods as proposed in the [blogpost](https://lmsys.org/blog/2024-08-28-style-control/). Please refer to the blogpost for methodology and technical background.
 
-Before applying style control, make sure your model answers has proper style attribute generated. Either pull the latest data from [huggingface repo](https://huggingface.co/spaces/lmsys/arena-hard-browser), or run the following script!
+Before applying style control, make sure your model answers has proper style attribute generated. Either pull the latest data from [huggingface repo](https://huggingface.co/datasets/lmarena-ai/arena-hard-auto), or run the following script!
 
 To add style attribute to your model answers, use `add_markdown_info.py`. The following command takes model answers from `--dir`, append style attributes (token length, number of headers, etc), and save the new answers in `--output-dir`.
 
@@ -181,13 +181,13 @@ To add style attribute to your model answers, use `add_markdown_info.py`. The fo
 > python add_markdown_info.py --dir data/arena-hard-v0.1/model_answer --output-dir data/arena-hard-v0.1/model_answer
 ```
 
-To control for style (token length and markdown elements), use `--style-control` when running `show_result.py`.
+To control for style (token length and markdown elements), use `--control-features` or `-f` when running `show_result.py`.
 
 ```console
-> python show_result.py --style-control
+> python show_result.py -f markdown length # style control
+> python show_result.py -f markdown # control for markdown density only
+> python show_result.py -f length # length control only
 ```
-
-To control for length and markdown separately, use `--length-control-only` and `--markdown-control-only`.
 
 ## Evaluate Benchmarks
 We outline two key properties that the benchmark aiming to approximate human preference should possess to provide meaningful comparisons between models:
@@ -203,7 +203,8 @@ Statistical measures like Pearson (Pearson, 1895) and Spearman Correlations (Spe
 For **Agreement with Confidence**, and **Pair Rank Brier Score**, please refer to section 3 of our [paper](https://arxiv.org/abs/2406.11939). The code for calculating these metrics can be found in this [colab notebook](https://colab.research.google.com/drive/1ar6XLWREN_dXEh404WNOxroFVUe_4njp). 
 
 ## Community Contribution
-Coming soon...
+
+Feel free to submit a PR or open up an issue!
 
 ## Citation
 The code in this repository is developed from the papers below. Please cite it if you find the repository helpful.

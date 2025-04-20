@@ -62,9 +62,10 @@ def get_answer(
     ans["metadata"] = metadata | count_markdown_elements(
         remove_pattern(
             output['answer'], 
-            re.compile("```([^`]*)```")),
-            suffix="",
-        )
+            re.compile("```([^`]*)```")
+        ),
+        suffix="",
+    )
 
     os.makedirs(os.path.dirname(answer_file), exist_ok=True)
     with open(answer_file, "a", encoding="utf-8") as fout:
