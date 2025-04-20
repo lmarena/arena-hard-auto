@@ -2,7 +2,6 @@ import json
 import yaml
 import argparse
 import os
-import re
 import concurrent.futures
 
 from tqdm import tqdm
@@ -19,11 +18,16 @@ from utils.completion import (
 from utils.judge_utils import JUDGE_SETTINGS
 
 
-def get_score(judgment, pattern):
-    matches = pattern.findall(judgment)
-    matches = [m for m in matches if m != ""]
-    if len(set(matches)) == 1:
-        return matches[0].strip("\n")
+def get_score(judgment, patterns):
+    import re
+    for pattern in patterns:
+        pattern = re.compile(pattern)
+        
+        matches = pattern.findall(judgment.upper())
+        matches = [m for m in matches if m != ""]
+        
+        if len(set(matches)) > 0:
+            return matches[-1].strip("\n")
     return None
 
 
@@ -63,7 +67,7 @@ def pairwise_judgment(question, baseline, answer, reference, configs, settings):
     if output is None:
         return None
 
-    score = get_score(output['answer'], re.compile(configs["regex_pattern"]))
+    score = get_score(output['answer'], configs["regex_patterns"])
 
     result = {
         "score": score,

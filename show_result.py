@@ -9,31 +9,27 @@ from utils.judge_utils import JUDGE_SETTINGS
 from utils.math_utils import one_hot_encode, to_winrate_probabilities, bootstrap_pairwise_model
 
 
-STYLE_FEATURES_MAP = {
-    "markdown": [
-        "header_count",
-        "list_count",
-        "bold_count",
-    ],
-    "length": [
-        "token_len",
-    ]
-}
+def load_judgments(judge_names, benchmark, weight=3):
+    dfs = []
+    for judge_name in judge_names:
+        print(f"Loading {judge_name} judgments...")
+        dfs.extend([
+            pd.read_json(f, lines=True) for f in tqdm(glob(os.path.join(
+                "data",
+                benchmark, 
+                "model_judgment", 
+                judge_name, 
+                "*.jsonl"
+            )))
+        ])
+    data = pd.concat(dfs).reset_index(drop=True)
+    
+    if data.model.isin(judge_names).any():
+        print(f"WARNING: {judge_names} is already in the data. Removing it.")
+        data = data[~data.model.isin(judge_names)].reset_index(drop=True)
 
-
-def load_judgments(judge_name, benchmark, weight=3):
-    data = pd.concat([
-        pd.read_json(f, lines=True) for f in tqdm(glob(os.path.join(
-            "data",
-            benchmark, 
-            "model_judgment", 
-            judge_name, 
-            "*.jsonl"
-        )))
-    ]).reset_index(drop=True)
-
-    _data = data[~data.games.map(lambda x: x[0] is None or x[1] is None)]
-    _data = _data[~_data.games.map(lambda x: x[0]['score'] is None or x[1]['score'] is None)].reset_index(drop=True)
+    null_indices = data.games.map(lambda x: x[0] is None or x[1] is None or x[0]['score'] is None or x[1]['score'] is None)
+    _data = data[~null_indices].reset_index(drop=True)
     
     print(f"Number of null judgments found: {len(data) - len(_data)}")
     
@@ -69,97 +65,175 @@ def get_model_style_metadata(benchmark):
     return model_metadata
 
 
-def print_leaderboard(battles):
-    for cat in battles.category.unique():
-        baseline = JUDGE_SETTINGS[cat]["baseline"]
+def format_confidence_interval(mean_scores, lower_scores, upper_scores, baseline=None):
+    leaderboard = pd.merge(
+        mean_scores, 
+        lower_scores, 
+        on="model"
+    ).merge(
+        upper_scores, 
+        on="model"
+    )
+    
+    leaderboard["CI (%)"] = leaderboard.apply(
+        lambda row: f"(-{round((row['scores'] - row['lower']) * 100, 1)} / +{round((row['upper'] - row['scores']) * 100, 1)})", 
+        axis=1
+    )
+    
+    _leaderboard = leaderboard.rename(
+        columns={"scores": "Scores", "model": "Model"}
+    ).drop(
+        columns=["lower", "upper"]
+    )
+    
+    if baseline:
+        _leaderboard = pd.concat(
+            [_leaderboard, pd.DataFrame({"Model": baseline, "Scores": 0.5, "CI (%)": "(-0.0 / +0.0)"}, index=[0])]
+        )
+    
+    return _leaderboard.sort_values(by="Scores", ascending=False).reset_index(drop=True)
+
+
+def print_leaderboard(battles, category):
+    baseline = JUDGE_SETTINGS[category]["baseline"]
+    
+    _battles = battles.drop(columns=['category'])[['model', 'scores']]
+    
+    # remove model path
+    _battles['model'] = _battles['model'].map(lambda x: x.split('/')[-1])
+    
+    bootstraps = pd.concat([
+        _battles.groupby("model").sample(frac=1.0, replace=True).groupby("model").mean()
+        for _ in tqdm(range(100))
+    ])
+    
+    bootstraps["scores"] = bootstraps["scores"].astype(float)
+    
+    mean_scores = bootstraps.groupby("model").mean().reset_index()
+    lower_scores = bootstraps.groupby("model").quantile(0.05).reset_index().rename(columns={"scores": "lower"})
+    upper_scores = bootstraps.groupby("model").quantile(0.95).reset_index().rename(columns={"scores": "upper"})
+    
+    _leaderboard = format_confidence_interval(mean_scores, lower_scores, upper_scores, baseline)
+    
+    print(f"##### Category: {category} #####")
+    print(_leaderboard.to_string())
         
-        _battles = battles[battles.category == cat].drop(columns=['category'])[['model', 'scores']]
+
+def print_leaderboard_with_style_features(battles, benchmark, category,control_features):        
+    style_metadata = get_model_style_metadata(benchmark)
+    
+    model_features = battles.apply(lambda row: 
+        style_metadata[row['model']][row['uid']], 
+        axis=1
+    ).tolist()
+    baseline_features = battles.apply(
+        lambda row: style_metadata[JUDGE_SETTINGS[row['category']]["baseline"]][row['uid']], 
+        axis=1
+    ).tolist()
+    
+    # remove model path
+    battles['model'] = battles['model'].map(lambda x: x.split('/')[-1])
+    
+    model_feature_tensor = torch.tensor([
+        [v if isinstance(v, int) else sum(v.values()) for k, v in metadata.items()]
+        for metadata in model_features
+    ], dtype=torch.float32)
+
+    baseline_feature_tensor = torch.tensor([
+        [v if isinstance(v, int) else sum(v.values()) for k, v in metadata.items()]
+        for metadata in baseline_features
+    ], dtype=torch.float32)
+    
+    final_feature_tensor = torch.zeros_like(model_feature_tensor)
+    final_feature_tensor[:, 0] = (
+        model_feature_tensor[:, 0] - baseline_feature_tensor[:, 0]
+    ) / (
+        model_feature_tensor[:, 0] + baseline_feature_tensor[:, 0]
+    )
+    
+    model_md_density = model_feature_tensor[:, 1:] / model_feature_tensor[:, :1]
+    baseline_md_density = baseline_feature_tensor[:, 1:] / baseline_feature_tensor[:, :1]
+    
+    final_feature_tensor[:, 1:] = (
+        model_md_density - baseline_md_density
+    ) / (
+        model_md_density + baseline_md_density + 1
+    )
+    
+    normalized_feature_tensor = (
+        final_feature_tensor - torch.mean(final_feature_tensor, axis=0)
+    ) / torch.std(
+        final_feature_tensor, axis=0
+    )
+    
+    outcomes = torch.tensor(battles.scores.tolist())
+    
+    model_features, unique_models = one_hot_encode(
+        battles.model.tolist(), 
+        baseline=JUDGE_SETTINGS[category]["baseline"]
+    )
+    all_features = torch.cat([model_features, normalized_feature_tensor], dim=1)
+    
+    if "length" in control_features and "markdown" in control_features:
+        num_features = 4
+    elif "length" in control_features:
+        all_features = all_features[:, :1]
+        num_features = 1
+    elif "markdown" in control_features:
+        all_features = all_features[:, 1:]
+        num_features = 3
+    else:
+        assert False, "Invalid control features"
         
-        # remove model path
-        _battles['model'] = _battles['model'].map(lambda x: x.split('/')[-1])
-        
-        leaderboard = _battles.groupby("model").mean().reset_index()
-        
-        leaderboard = pd.concat(
-            [leaderboard, pd.DataFrame({"model": baseline, "scores": 0.5}, index=[0])]
-        ).sort_values(by="scores", ascending=False).reset_index(drop=True)
-        
-        print(f"##### Category: {cat} #####")
-        print(leaderboard)
+    coefs, _ = bootstrap_pairwise_model(all_features, outcomes, loss_type="bt")
+    
+    _coefs = coefs[:, :-num_features]
+    
+    table = pd.DataFrame(
+        columns=unique_models, 
+        data=to_winrate_probabilities(
+            _coefs, 
+            unique_models,
+            baseline_model=JUDGE_SETTINGS[category]["baseline"]
+        ).tolist()
+    )
+    
+    _leaderboard = format_confidence_interval(
+        table.quantile(0.5).to_frame("scores").reset_index().rename(columns={"index": "model"}), 
+        table.quantile(0.05).to_frame("lower").reset_index().rename(columns={"index": "model"}), 
+        table.quantile(0.95).to_frame("upper").reset_index().rename(columns={"index": "model"}), 
+    )
+
+    print(f"##### Category: {category} #####")
+    print(_leaderboard.to_string())
+    print(f"Feature Coefs: {torch.quantile(coefs[:, -num_features:], 0.5, axis=0)}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--judge-name", type=str, default="gemini-2.5")
-    parser.add_argument("--benchmark", type=str, default="arena-hard-v2.0")
-    parser.add_argument("--control-features", nargs="+", default=[])
+    parser.add_argument("--judge-names", "-j", nargs="+", default=["gpt-4.1"])
+    parser.add_argument("--benchmark", "-b", type=str, default="arena-hard-v2.0")
+    parser.add_argument("--control-features", "-f", nargs="+", default=[])
+    parser.add_argument("--category", "-c", type=str, default=['hard_prompt'])
     args = parser.parse_args()
     
-    if args.control_features:
-        control_features = []
-        for feature in args.control_features:
-            assert feature in STYLE_FEATURES_MAP, f"Feature {feature} not found in {STYLE_FEATURES_MAP}"
-            control_features.extend(STYLE_FEATURES_MAP[feature])
+    battles = load_judgments(args.judge_names, args.benchmark)
+    
+    for category in args.category:
+        assert category in battles.category.unique(), f"Invalid category: {category}"
+        
+        battles = battles[battles.category == category].reset_index(drop=True)
+        
+        if args.control_features:
+            print(f"INFO: Control features: {args.control_features}")
             
-        print(f"INFO: Control features: {control_features}")
-        
-        battles = load_judgments(args.judge_name, args.benchmark)
-        
-        style_metadata = get_model_style_metadata(args.benchmark)
-        
-        battles['model_style'] = battles.apply(lambda row: 
-            style_metadata[row['model']][row['uid']], 
-            axis=1
-        )
-        battles['baseline_style'] = battles.apply(
-            lambda row: style_metadata[JUDGE_SETTINGS[row['category']]["baseline"]][row['uid']], 
-            axis=1
-        )
-        
-        style_features_a = battles.model_style.map(lambda x:
-            torch.tensor([v if isinstance(v, int) else sum(v.values()) for k, v in x.items() if k in control_features])
-        )
-        style_features_b = battles.baseline_style.map(lambda x:
-            torch.tensor([v if isinstance(v, int) else sum(v.values()) for k, v in x.items() if k in control_features])
-        )
-        
-        battles['style_feature_diff'] = [
-            style_features_a[i] - style_features_b[i] for i in range(len(style_features_a))
-        ]
-        
-        for cat in battles.category.unique():
-            _battles = battles[battles.category == cat].reset_index(drop=True)
-            
-            if cat == "hard_prompt":
-                import pickle
-                with open("tmp_battles.pkl", "wb") as f:
-                    pickle.dump(_battles, f)
-                print("file saved")
-        
-            outcomes = torch.tensor(_battles.scores.tolist())
-            model_features, unique_models = one_hot_encode(_battles.model.tolist())
-
-            style_feature_diff = torch.tensor([diff.tolist() for diff in _battles.style_feature_diff])
-            
-            features = torch.cat([model_features, style_feature_diff], dim=1)
-            
-            print(features.shape)
-
-            coefs, _ = bootstrap_pairwise_model(features, outcomes, loss_type="bt")
-            
-            _coefs = coefs[:, :-len(control_features)]
-            
-            table = pd.DataFrame(
-                columns=unique_models, 
-                data=to_winrate_probabilities(
-                    _coefs, 
-                    unique_models
-                ).tolist()
+            print_leaderboard_with_style_features(
+                battles, 
+                args.benchmark, 
+                category,
+                args.control_features
             )
-            
-            print(f"##### Category: {cat} #####")
-            print(table.quantile(0.5).sort_values(ascending=False))
-    else:
-        battles = load_judgments(args.judge_name, args.benchmark)
-        print_leaderboard(battles)
+                
+        else:
+            print_leaderboard(battles, category)
         

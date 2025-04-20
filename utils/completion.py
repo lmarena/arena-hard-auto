@@ -4,8 +4,6 @@ import time
 import yaml
 import random
 import shortuuid
-import requests
-import subprocess
 import pandas as pd
 
 from glob import glob
@@ -404,6 +402,8 @@ def chat_completion_xai(model, messages, temperature, max_tokens, api_dict=None,
 
 @register_api("gemini")
 def http_completion_gemini(model, messages, **kwargs):
+    import requests
+    
     api_key = os.environ["GEMINI_API_KEY"]
     
     safety_settings = [
@@ -484,7 +484,76 @@ def http_completion_gemini(model, messages, **kwargs):
             print(response.json())
     return output
     
+
+@register_api("vertex")
+def vertex_completion_gemini(model, messages, project_id, regions, **kwargs):
+    import requests
+    import subprocess
     
+    output = API_ERROR_OUTPUT
+    
+    # Obtain the access token using gcloud CLI
+    access_token = subprocess.check_output(
+        ["gcloud", "auth", "application-default", "print-access-token"], 
+        text=True
+    ).strip()
+
+    if messages[0]["role"] == "system":
+        data = {
+            "systemInstruction": {
+                "role": "system", # ignored by vertexi api (04/18/2025)
+                "parts": [{
+                    "text": messages[0]["content"]
+                }]
+            },
+        }
+        messages = messages[1:]
+    else:
+        data = {}
+        
+    role_map = {
+        "user": "user",
+        "assistant": "model"
+    }
+    
+    messages = [{"parts":[{"text":turn["content"]}], "role":role_map[turn["role"]]} for turn in messages]
+
+    url = (
+        f"https://us-central1-aiplatform.googleapis.com/v1/projects/"
+        f"{project_id}/locations/{regions}/publishers/google/models/"
+        f"{model}:generateContent"
+    )
+    
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+
+    data = data | {
+        "contents": messages,
+    } 
+    
+    if "temperature" in kwargs or "max_tokens" in kwargs:
+        gen_config = {}
+        if "temperature" in kwargs:
+            gen_config["temperature"] = kwargs["temperature"]
+        if "max_tokens" in kwargs:
+            gen_config["maxOutputTokens"] = kwargs["max_tokens"]
+        data["generationConfig"] = gen_config
+
+    response = requests.post(url, json=data, headers=headers)
+    
+    try:
+        output = {
+            "answer": response.json()["candidates"][0]["content"]["parts"][0]["text"],
+        }
+    except KeyError as e:
+        print(type(e), e)
+        print(response.json())
+        
+    return output
+
+
 @register_api("cohere")
 def chat_completion_cohere(model, messages, temperature, max_tokens, **kwargs):
     import cohere
@@ -666,6 +735,8 @@ def _infer_cuda_tp_world_size():
 
 
 def download_model(model: str, max_workers: int = 64):
+    import subprocess
+    
     env = os.environ.copy()
     env["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
     
