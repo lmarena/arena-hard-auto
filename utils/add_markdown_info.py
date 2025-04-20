@@ -63,7 +63,7 @@ if __name__ == "__main__":
     parser.add_argument("--output-dir", type=str, required=True)
     args = parser.parse_args()
     
-    encoder = tiktoken.encoding_for_model("gpt-3.5-turbo")
+    encoder = tiktoken.encoding_for_model("gpt-4o")
     
     print("loading file...")
     for file in tqdm(glob(f"{args.dir}/*.jsonl")):

@@ -22,23 +22,23 @@ Although both Arena-Hard-Auto and Chatbot Arena Category Hard ([See Blog](https:
 **Arena-Hard-v2.0-Preview (Hard Prompt, Style Control, GPT-4.1 as Judge)**
 ```console
                                       Model  Scores (%)         CI (%)
-0                             o3-2025-04-16        87.8  (-1.2 / +1.1)
-1                   o4-mini-2025-04-16-high        83.0  (-1.3 / +1.3)
-2                        o4-mini-2025-04-16        78.9  (-1.4 / +1.5)
-3                   o3-mini-2025-01-31-high        64.3  (-2.5 / +2.0)
-4                        o1-2024-12-17-high        57.5  (-2.5 / +2.2)
+0                             o3-2025-04-16        87.6  (-0.8 / +1.0)
+1                   o4-mini-2025-04-16-high        82.7  (-1.4 / +1.3)
+2                        o4-mini-2025-04-16        78.9  (-1.6 / +1.6)
+3                   o3-mini-2025-01-31-high        64.0  (-2.0 / +2.1)
+4                        o1-2024-12-17-high        57.8  (-2.7 / +1.9)
 5                        o3-mini-2025-01-31        50.0  (-0.0 / +0.0)
-6                             o1-2024-12-17        48.7  (-2.6 / +2.8)
-7                               deepseek-r1        48.3  (-2.6 / +2.3)
-8                              gpt-4.1-mini        47.1  (-2.7 / +2.7)
-9   claude-3-7-sonnet-20250219-thinking-16k        47.0  (-2.1 / +2.2)
-10                                  QwQ-32B        36.2  (-2.3 / +1.5)
-11               claude-3-5-sonnet-20241022        25.7  (-2.3 / +2.7)
-12                             gpt-4.1-nano        13.6  (-1.3 / +1.1)
-13                           Athene-V2-Chat        11.1  (-1.1 / +1.0)
-14           llama4-maverick-instruct-basic        10.5  (-1.2 / +1.4)
-15                           gemma-3-27b-it         7.9  (-0.9 / +0.9)
-16       Llama-3.1-Nemotron-70B-Instruct-HF         5.7  (-1.0 / +0.7)
+6                               deepseek-r1        48.7  (-2.6 / +2.3)
+7                             o1-2024-12-17        48.1  (-1.8 / +2.6)
+8   claude-3-7-sonnet-20250219-thinking-16k        47.0  (-2.2 / +1.9)
+9                              gpt-4.1-mini        47.0  (-2.0 / +3.0)
+10                                  QwQ-32B        35.7  (-2.2 / +2.2)
+11               claude-3-5-sonnet-20241022        25.5  (-2.3 / +2.3)
+12                             gpt-4.1-nano        13.6  (-1.3 / +1.5)
+13                           Athene-V2-Chat        11.2  (-1.3 / +1.3)
+14           llama4-maverick-instruct-basic        10.5  (-1.2 / +1.5)
+15                           gemma-3-27b-it         8.0  (-1.0 / +0.9)
+16       Llama-3.1-Nemotron-70B-Instruct-HF         5.6  (-0.8 / +0.8)
 17                         OpenThinker2-32B         1.4  (-0.2 / +0.2)
 ```
 
@@ -76,26 +76,21 @@ pip install -r requirements-optional.txt  # Optional dependencies (e.g., anthrop
 ```
 
 ## Download dataset
-We have pre-generated many popular models answers and judgments. You can browse them with an online [demo](https://huggingface.co/spaces/lmsys/arena-hard-browser) or download them (with [`git-lfs`](https://git-lfs.com) installed) by
+We have pre-generated many popular models answers and judgments. You can browse them with an online [demo](https://huggingface.co/spaces/lmsys/arena-hard-browser) (not yet supported) or download them (with [`git-lfs`](https://git-lfs.com) installed) by
 ```console
 > git lfs install
-> git clone git@hf.co:datasets/lmarena-ai/arena-hard-auto
+> git clone git@hf.co:datasets/lmarena-ai/arena-hard-auto arena-hard-data
 // copy answers/judgments to the data directory
-> cp -r arena-hard-browser/data . 
+> cp -r arena-hard-data/data . 
 ```
 
 Then run
 ```console
 > python show_result.py
-gpt-4-0125-preview             | score: 78.0  | 95% CI: (-1.8, 2.2)  | average #tokens: 619
-claude-3-opus-20240229         | score: 60.4  | 95% CI: (-2.6, 2.1)  | average #tokens: 541
-gpt-4-0314                     | score: 50.0  | 95% CI:  (0.0, 0.0)  | average #tokens: 423
-claude-3-sonnet-20240229       | score: 46.8  | 95% CI: (-2.7, 2.3)  | average #tokens: 552
-claude-3-haiku-20240307        | score: 41.5  | 95% CI: (-2.4, 2.5)  | average #tokens: 505
-gpt-4-0613                     | score: 37.9  | 95% CI: (-2.1, 2.2)  | average #tokens: 354
-mistral-large-2402             | score: 37.7  | 95% CI: (-2.9, 2.8)  | average #tokens: 400
-Qwen1.5-72B-Chat               | score: 36.1  | 95% CI: (-2.1, 2.4)  | average #tokens: 474
-command-r-plus                 | score: 33.1  | 95% CI: (-2.0, 1.9)  | average #tokens: 541
+                                      Model  Scores (%)         CI (%)
+0                             o3-2025-04-16        87.6  (-0.8 / +1.0)
+1                   o4-mini-2025-04-16-high        82.7  (-1.4 / +1.3)
+2                        o4-mini-2025-04-16        78.9  (-1.6 / +1.6)
 ```
 
 ## Evaluate
@@ -106,7 +101,7 @@ Fill in your API endpoint in `config/api_config.yaml`. We support OpenAI compati
 
 You may use inference engine such as [vLLM](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html) or [SGLang](https://github.com/sgl-project/sglang?tab=readme-ov-file#using-local-models) to host your model with an OpenAI compatible API server.
 
-We also include support for fast built-in inference with SGLang, see examples in `config/api_config.yaml` and implementaton in `utils/completion.py`.
+We also include support for fast built-in inference with SGLang, see examples in `config/api_config.yaml` and implementaton in `utils/completion.py`. See `misc/sglang_setup.bash` for environment setup.
 
 ### Step 2. Generate Model Answers
 
@@ -114,7 +109,7 @@ In `config/gen_answer_config.yaml`, add your model name in `model_list`.
 
 Run the command to generate answers:
 ```console
-python gen_answer.py
+> python gen_answer.py
 ```
 
 Caching feature is implemented. The code will skip generating an answer when there is already an existing answer/judgment to the same prompt (this feature is not supported for built-in SGLang server).
@@ -146,7 +141,7 @@ max_tokens: 32000
 
 Run the command to generate judgments:
 ```console
-python gen_judgment.py
+> python gen_judgment.py
 ```
 
 For Ensemble-as-Judges, we suggest inferencing both judges independently and we will aggregrate the results when displaying leaderboard for you (see step 4).

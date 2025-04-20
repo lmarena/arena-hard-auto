@@ -717,7 +717,10 @@ def batch_submit_sglang(
         
         if end_think_token:
             thought, _, ans = raw_response.partition(end_think_token)
-            uid_to_response[uid] = {"thought": thought, "answer": ans}
+            if ans == "":
+                uid_to_response[uid] = {"thought": thought, "answer": raw_response}
+            else:
+                uid_to_response[uid] = {"thought": thought, "answer": ans}
         else:
             uid_to_response[uid] = {"answer": raw_response}
     
