@@ -102,79 +102,69 @@ command-r-plus                 | score: 33.1  | 95% CI: (-2.0, 1.9)  | average #
 
 ### Step 1. Set up the endpoint config to your model
 
-Fill in your API endpoint in `config/api_config.yaml`. We support OpenAI compatible API server. You can specify `parallel` to indicate the number of concurrent API requests (default: 1).
-```yaml
-# example
-gpt-3.5-turbo-0125:
-    model_name: gpt-3.5-turbo-0125
-    endpoints: null
-    api_type: openai
-    parallel: 8
+Fill in your API endpoint in `config/api_config.yaml`. We support OpenAI compatible API server, Anthropic, Vertex AI, and more. You will find examples in `config/api_config.yaml`.
 
-[YOUR-MODEL-NAME]:
-    model_name: [YOUR-MODEL-NAME]
-    endpoints:
-        - api_base: [YOUR-ENDPOINT-URL]
-          api_key: [YOUR-API-KEY]
-    api_type: openai
-    parallel: 8
-```
-You may use inference engine such as [Latest TGI version](https://huggingface.co/docs/text-generation-inference/en/messages_api) or [vLLM](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html) or [SGLang](https://github.com/sgl-project/sglang?tab=readme-ov-file#using-local-models) to host your model with an OpenAI compatible API server.
+You may use inference engine such as [vLLM](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html) or [SGLang](https://github.com/sgl-project/sglang?tab=readme-ov-file#using-local-models) to host your model with an OpenAI compatible API server.
 
-TGI Quick start
-```
-hf_pat=
-model=
-volume=/path/to/cache
-port=1996
-
-huggingface-cli download $model
-sudo docker run --gpus 8 -e HUGGING_FACE_HUB_TOKEN=$hf_pat --shm-size 2000g -p $port:80 -v $volume:/data ghcr.io/huggingface/text-generation-inference:2.0.4 --model-id $model --max-input-length 8192 --max-batch-total-tokens 8193 --max-batch-prefill-tokens 8193 --max-total-tokens 8193
-```
+We also include support for fast built-in inference with SGLang, see examples in `config/api_config.yaml` and implementaton in `utils/completion.py`.
 
 ### Step 2. Generate Model Answers
 
 In `config/gen_answer_config.yaml`, add your model name in `model_list`.
-```yaml
-bench_name: arena-hard-v0.1
-temperature: 0.0
-max_tokens: 4096
-num_choices: 1
 
-
-model_list:
-  - [YOUR-MODEL-NAME]
-```
 Run the command to generate answers:
 ```console
 python gen_answer.py
 ```
-Caching feature is implemented. The code will skip generating an answer when there is already an existing answer/judgment to the same prompt. 
+
+Caching feature is implemented. The code will skip generating an answer when there is already an existing answer/judgment to the same prompt (this feature is not supported for built-in SGLang server).
 
 ### Step 3. Generate Judgments
 
-In `config/judge_config.yaml`, add your model name in `model_list`.
+In `config/arena-hard-v2.0.yaml`, add your model name in `model_list`.
 ```yaml
 ...
 # Add your model below for evaluation
 model_list:
-  - gpt-3.5-turbo-0125
+  - deepseek-r1
   - [YOUR-MODEL-NAME]
+```
+
+We recommend employing GPT-4.1 as judge for fast, stable judge inference. To use Gemini-2.5, comment out:
+```yaml
+judge_model: gpt-4.1
+temperature: 0.0
+max_tokens: 16000
+```
+
+and uncomment:
+```yaml
+judge_model: gemini-2.5
+temperature: 1.0
+max_tokens: 32000
 ```
 
 Run the command to generate judgments:
 ```console
 python gen_judgment.py
 ```
+
+For Ensemble-as-Judges, we suggest inferencing both judges independently and we will aggregrate the results when displaying leaderboard for you (see step 4).
+
 Judgment caching is also implemented. It will skip generating judgments that has already been generated or lacks one of the model answers.  
 
 ### Step 4. Show result
-Output model win rates.  Optionally, use `--full-stats` for detailed results. To save a csv file of the model rankings, use `--output`
+Output model win rates for **Arena-Hard-v2.0-Preview (Hard Prompt, Style Control, GPT-4.1 as Judge)**:
 ```console
-> python show_result.py
+> python show_result.py --judge-names gpt-4.1 --control-features markdown length
 ```
 
-### Step 5. Arena Hard UI
+Output model win rates for **Arena-Hard-v2.0-Preview (Creative Writing, GPT-4.1 and Gemini 2.5 as Judges)**:
+```console
+> python show_result.py --judge-names gpt-4.1 gemini-2.5 --category creative_writing
+```
+
+### Step 5. Arena Hard UI (not yet supported)
 You can review individual judgment results using our UI code.
 ```console
 > python qa_browser.py --share

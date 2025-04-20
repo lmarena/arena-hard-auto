@@ -7,11 +7,11 @@ reference: null
 temperature: 0.0
 max_tokens: 4096
 
-regex_pattern: \[\[([AB<>=]+)\]\]
+regex_patterns:
+  - \[\[([AB<>=]+)\]\]
+  - \[([AB<>=]+)\]
 
 prompt_template: "<|User Prompt|>\n{QUESTION}\n\n<|The Start of Assistant A's Answer|>\n{ANSWER_A}\n<|The End of Assistant A's Answer|>\n\n<|The Start of Assistant B's Answer|>\n{ANSWER_B}\n<|The End of Assistant B's Answer|>"
 
 model_list:
-  # - deepseek-r1
-  # - qwq-32b
-  # - o1-2024-12-17
+  - deepseek-r1

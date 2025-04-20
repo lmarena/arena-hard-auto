@@ -9,12 +9,27 @@ gpt-4-1106-preview:
     max_tokens: 4096
     temperature: 0.0
 
+gpt-4.1:
+    model: gpt-4.1
+    endpoints: null
+    api_type: openai
+    parallel: 64
+    max_tokens: 32000
+    temperature: 0.0
+
+# gemini-2.5:
+#     model: gemini-2.5-pro-preview-03-25
+#     endpoints: null
+#     api_type: gemini
+#     parallel: 50
+
 gemini-2.5:
     model: gemini-2.5-pro-preview-03-25
     endpoints: null
-    api_type: gemini
-    parallel: 50
-    max_tokens: 20000
+    api_type: vertex
+    parallel: 16
+    project_id: <project_id>
+    regions: <region>
 
 claude-3-7-sonnet-20250219-thinking-16k:
     model: claude-3-7-sonnet-20250219
@@ -22,6 +37,12 @@ claude-3-7-sonnet-20250219-thinking-16k:
     max_tokens: 20000
     budget_tokens: 16000
     api_type: anthropic_thinking
+    parallel: 32
+
+deepseek-r1:
+    endpoints:
+        - api_key: <your_api_key>
+    api_type: deepseek_reasoner
     parallel: 32
 
 claude-3-5-sonnet-20241022:
@@ -46,16 +67,9 @@ gpt-4o-mini-2024-07-18:
     max_tokens: 8196
     temperature: 0.0
 
-deepseek-r1:
-    endpoints:
-        - api_key: <your_api_key>
-    api_type: deepseek_reasoner
-    parallel: 32
-
 # Local inference examples
 qwq-32b:
-    # model: Qwen/QwQ-32B
-    model: Nexusflow/QwQ-32B-Fix
+    model: Qwen/QwQ-32B
     endpoints: null
     api_type: sglang
     local_engine: True
@@ -72,21 +86,3 @@ gemma-3-27b-it:
     parallel: 128
     max_tokens: 8196
     temperature: 0.0
-
-gpt-4.1:
-    model: gpt-4.1
-    endpoints: null
-    api_type: openai
-    parallel: 128
-    max_tokens: 32000
-    temperature: 0.0
-
-OpenThinker2-32B:
-    model: open-thoughts/OpenThinker2-32B
-    local_engine: True
-    endpoints: null
-    api_type: sglang
-    temperature: 0.7
-    max_tokens: 20000
-
-    
