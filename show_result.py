@@ -75,23 +75,25 @@ def format_confidence_interval(mean_scores, lower_scores, upper_scores, baseline
         on="model"
     )
     
+    leaderboard["Scores (%)"] = leaderboard["scores"].map(lambda x: round(x * 100, 1))
+    
     leaderboard["CI (%)"] = leaderboard.apply(
         lambda row: f"(-{round((row['scores'] - row['lower']) * 100, 1)} / +{round((row['upper'] - row['scores']) * 100, 1)})", 
         axis=1
     )
     
     _leaderboard = leaderboard.rename(
-        columns={"scores": "Scores", "model": "Model"}
+        columns={"model": "Model"}
     ).drop(
-        columns=["lower", "upper"]
+        columns=["lower", "upper", "scores"]
     )
     
     if baseline:
         _leaderboard = pd.concat(
-            [_leaderboard, pd.DataFrame({"Model": baseline, "Scores": 0.5, "CI (%)": "(-0.0 / +0.0)"}, index=[0])]
+            [_leaderboard, pd.DataFrame({"Model": baseline, "Scores (%)": 50.0, "CI (%)": "(-0.0 / +0.0)"}, index=[0])]
         )
     
-    return _leaderboard.sort_values(by="Scores", ascending=False).reset_index(drop=True)
+    return _leaderboard.sort_values(by="Scores (%)", ascending=False).reset_index(drop=True)
 
 
 def print_leaderboard(battles, category):
@@ -211,10 +213,10 @@ def print_leaderboard_with_style_features(battles, benchmark, category,control_f
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--judge-names", "-j", nargs="+", default=["gpt-4.1"])
     parser.add_argument("--benchmark", "-b", type=str, default="arena-hard-v2.0")
+    parser.add_argument("--judge-names", "-j", nargs="+", default=["gpt-4.1"])
     parser.add_argument("--control-features", "-f", nargs="+", default=[])
-    parser.add_argument("--category", "-c", type=str, default=['hard_prompt'])
+    parser.add_argument("--category", "-c", nargs="+", default=['hard_prompt'])
     args = parser.parse_args()
     
     battles = load_judgments(args.judge_names, args.benchmark)
