@@ -1,263 +1,241 @@
 import pandas as pd
-import numpy as np
-
-import datetime
 import argparse
 import os
-
+import torch
 from glob import glob
 from tqdm import tqdm
 
-from utils import load_model_answers
-from utils_math import (
-    compute_mle_elo, 
-    get_bootstrap_result,
-    get_win_rate_column,
-    fit_bt,
-    construct_style_matrices,
-    get_bootstrap_result_style_control,
-    STYLE_CONTROL_ELEMENTS,
-    LENGTH_CONTROL_ELEMENTS,
-    MARKDOWN_CONTROL_ELEMENTS,
-)
+from utils.judge_utils import JUDGE_SETTINGS
+from utils.math_utils import one_hot_encode, to_winrate_probabilities, bootstrap_pairwise_model
 
 
-def get_battles_from_row(row, first_game_only, multiplier, baseline_model, metadata=None):
-    results = []
-    output = {"question_id": row["question_id"],
-              "model_a": baseline_model,
-              "model_b": row["model"]}
+def load_judgments(judge_names, benchmark, weight=3):
+    dfs = []
+    for judge_name in judge_names:
+        print(f"Loading {judge_name} judgments...")
+        dfs.extend([
+            pd.read_json(f, lines=True) for f in tqdm(glob(os.path.join(
+                "data",
+                benchmark, 
+                "model_judgment", 
+                judge_name, 
+                "*.jsonl"
+            )))
+        ])
+    data = pd.concat(dfs).reset_index(drop=True)
     
-    game = row["games"][0]
-    weight = 1
-    if game["score"] == "A=B":
-        output["winner"] = "tie"
-    elif game["score"] == "A>B":
-        output["winner"] = "model_a"
-    elif game["score"] == "A>>B":
-        output["winner"] = "model_a"
-        weight = multiplier
-    elif game["score"] == "B>A":
-        output["winner"] = "model_b"
-    elif game["score"] == "B>>A":
-        output["winner"] = "model_b"
-        weight = multiplier
-    else:
-        weight = 0
+    if data.model.isin(judge_names).any():
+        print(f"WARNING: {judge_names} is already in the data. Removing it.")
+        data = data[~data.model.isin(judge_names)].reset_index(drop=True)
+
+    null_indices = data.games.map(lambda x: x[0] is None or x[1] is None or x[0]['score'] is None or x[1]['score'] is None)
+    _data = data[~null_indices].reset_index(drop=True)
     
-    # add conv_metadata for style control
-    if metadata:
-        output["conv_metadata"] = {
-            "sum_assistant_a_tokens": metadata[baseline_model][row["question_id"]]["conv_metadata"]["token_len"],
-            "sum_assistant_b_tokens": metadata[row["model"]][row["question_id"]]["conv_metadata"]["token_len"],
-            "header_count_a": metadata[baseline_model][row["question_id"]]["conv_metadata"]["header_count"],
-            "header_count_b": metadata[row["model"]][row["question_id"]]["conv_metadata"]["header_count"],
-            "list_count_a": metadata[baseline_model][row["question_id"]]["conv_metadata"]["list_count"],
-            "list_count_b": metadata[row["model"]][row["question_id"]]["conv_metadata"]["list_count"],
-            "bold_count_a": metadata[baseline_model][row["question_id"]]["conv_metadata"]["bold_count"],
-            "bold_count_b": metadata[row["model"]][row["question_id"]]["conv_metadata"]["bold_count"],
-        }
-
-    if weight:
-        results += [output] * weight
-        
-    if first_game_only:
-        return results
+    print(f"Number of null judgments found: {len(data) - len(_data)}")
     
-    # game 2
-    output = {"question_id": row["question_id"],
-            "model_a": baseline_model,
-            "model_b": row["model"]}
+    # map label to score
+    label_to_score = {
+        "A>B": [1],
+        "A>>B": [1] * weight,
+        "A=B": [0.5],
+        "A<<B": [0] * weight,
+        "A<B": [0],
+        "B>A": [0],
+        "B>>A": [0] * weight,
+        "B=A": [0.5],
+        "B<<A": [1] * weight,
+        "B<A": [1],
+    }
 
-    game = row["games"][1]
-
-    weight = 1
-    if game["score"] == "A=B":
-        output["winner"] = "tie"
-    elif game["score"] == "A>B":
-        output["winner"] = "model_b"
-    elif game["score"] == "A>>B":
-        output["winner"] = "model_b"
-        weight = multiplier
-    elif game["score"] == "B>A":
-        output["winner"] = "model_a"
-    elif game["score"] == "B>>A":
-        output["winner"] = "model_a"
-        weight = multiplier
-    else:
-        weight = 0
+    _data['scores'] = _data.games.map(
+        lambda x: label_to_score[x[1]['score']] + [1 - s for s in label_to_score[x[0]['score']]]
+    )
     
-    if metadata:
-        output["conv_metadata"] = {
-            "sum_assistant_a_tokens": metadata[baseline_model][row["question_id"]]["conv_metadata"]["token_len"],
-            "sum_assistant_b_tokens": metadata[row["model"]][row["question_id"]]["conv_metadata"]["token_len"],
-            "header_count_a": metadata[baseline_model][row["question_id"]]["conv_metadata"]["header_count"],
-            "header_count_b": metadata[row["model"]][row["question_id"]]["conv_metadata"]["header_count"],
-            "list_count_a": metadata[baseline_model][row["question_id"]]["conv_metadata"]["list_count"],
-            "list_count_b": metadata[row["model"]][row["question_id"]]["conv_metadata"]["list_count"],
-            "bold_count_a": metadata[baseline_model][row["question_id"]]["conv_metadata"]["bold_count"],
-            "bold_count_b": metadata[row["model"]][row["question_id"]]["conv_metadata"]["bold_count"],
-        }
-
-    if weight:
-        results += [output] * weight
+    battles = _data[['uid', 'model', 'category', 'scores']].explode('scores').reset_index(drop=True)
     
-    return results
-
-
-def get_battles_from_judgment(bench_name, 
-                              judge_name, 
-                              first_game_only=False, 
-                              multiplier=3, 
-                              baseline_model="gpt-4-0314",
-                              style_control=False):
-    print("Turning judgment results into battles...")
-
-    judge_dir = f"data/{bench_name}/model_judgment/{judge_name}"
-    assert os.path.exists(judge_dir)
-    judgments = pd.concat([pd.read_json(file, lines=True) for file in tqdm(glob(f"{judge_dir}/*jsonl"))])
-    
-    metadata = None
-    if style_control:
-        ans_dir = f"data/{bench_name}/model_answer"
-        assert os.path.exists(ans_dir)
-        
-        metadata = {}
-        for file in tqdm(glob(f"{ans_dir}/*.jsonl")):
-            df = pd.read_json(file, lines=True)
-            assert "conv_metadata" in df.columns, "You must have conv_metadata attributes in your model answer to apply style contro. Please pull newest data if needed."
-            metadata[df.model_id[0]] = df[["question_id", "conv_metadata"]].set_index("question_id").to_dict("index")
-    
-    battles = judgments.apply(lambda row: get_battles_from_row(row, first_game_only, multiplier, baseline_model, metadata), axis=1)
-    battles = pd.DataFrame(battles[battles.map(len) > 0].explode().tolist())
-    battles.to_json("data/arena_hard_battles.jsonl", orient="records", lines=True)
     return battles
+
+
+def get_model_style_metadata(benchmark):
+    model_metadata = {}
+    for file in glob(os.path.join("data", benchmark, "model_answer", "*.jsonl")):
+        df = pd.read_json(file, lines=True)
+        model_metadata[df.iloc[0]['model']] = df.set_index('uid')['metadata'].to_dict()
+        
+    return model_metadata
+
+
+def format_confidence_interval(mean_scores, lower_scores, upper_scores, baseline=None):
+    leaderboard = pd.merge(
+        mean_scores, 
+        lower_scores, 
+        on="model"
+    ).merge(
+        upper_scores, 
+        on="model"
+    )
+    
+    leaderboard["Scores (%)"] = leaderboard["scores"].map(lambda x: round(x * 100, 1))
+    
+    leaderboard["CI (%)"] = leaderboard.apply(
+        lambda row: f"(-{round((row['scores'] - row['lower']) * 100, 1)} / +{round((row['upper'] - row['scores']) * 100, 1)})", 
+        axis=1
+    )
+    
+    _leaderboard = leaderboard.rename(
+        columns={"model": "Model"}
+    ).drop(
+        columns=["lower", "upper", "scores"]
+    )
+    
+    if baseline:
+        _leaderboard = pd.concat(
+            [_leaderboard, pd.DataFrame({"Model": baseline, "Scores (%)": 50.0, "CI (%)": "(-0.0 / +0.0)"}, index=[0])]
+        )
+    
+    return _leaderboard.sort_values(by="Scores (%)", ascending=False).reset_index(drop=True)
+
+
+def print_leaderboard(battles, category):
+    baseline = JUDGE_SETTINGS[category]["baseline"]
+    
+    _battles = battles.drop(columns=['category'])[['model', 'scores']]
+    
+    # remove model path
+    _battles['model'] = _battles['model'].map(lambda x: x.split('/')[-1])
+    
+    bootstraps = pd.concat([
+        _battles.groupby("model").sample(frac=1.0, replace=True).groupby("model").mean()
+        for _ in tqdm(range(100))
+    ])
+    
+    bootstraps["scores"] = bootstraps["scores"].astype(float)
+    
+    mean_scores = bootstraps.groupby("model").mean().reset_index()
+    lower_scores = bootstraps.groupby("model").quantile(0.05).reset_index().rename(columns={"scores": "lower"})
+    upper_scores = bootstraps.groupby("model").quantile(0.95).reset_index().rename(columns={"scores": "upper"})
+    
+    _leaderboard = format_confidence_interval(mean_scores, lower_scores, upper_scores, baseline)
+    
+    print(f"##### Category: {category} #####")
+    print(_leaderboard.to_string())
+        
+
+def print_leaderboard_with_style_features(battles, benchmark, category,control_features):        
+    style_metadata = get_model_style_metadata(benchmark)
+    
+    model_features = battles.apply(lambda row: 
+        style_metadata[row['model']][row['uid']], 
+        axis=1
+    ).tolist()
+    baseline_features = battles.apply(
+        lambda row: style_metadata[JUDGE_SETTINGS[row['category']]["baseline"]][row['uid']], 
+        axis=1
+    ).tolist()
+    
+    # remove model path
+    battles['model'] = battles['model'].map(lambda x: x.split('/')[-1])
+    
+    model_feature_tensor = torch.tensor([
+        [v if isinstance(v, int) else sum(v.values()) for k, v in metadata.items()]
+        for metadata in model_features
+    ], dtype=torch.float32)
+
+    baseline_feature_tensor = torch.tensor([
+        [v if isinstance(v, int) else sum(v.values()) for k, v in metadata.items()]
+        for metadata in baseline_features
+    ], dtype=torch.float32)
+    
+    final_feature_tensor = torch.zeros_like(model_feature_tensor)
+    final_feature_tensor[:, 0] = (
+        model_feature_tensor[:, 0] - baseline_feature_tensor[:, 0]
+    ) / (
+        model_feature_tensor[:, 0] + baseline_feature_tensor[:, 0]
+    )
+    
+    model_md_density = model_feature_tensor[:, 1:] / model_feature_tensor[:, :1]
+    baseline_md_density = baseline_feature_tensor[:, 1:] / baseline_feature_tensor[:, :1]
+    
+    final_feature_tensor[:, 1:] = (
+        model_md_density - baseline_md_density
+    ) / (
+        model_md_density + baseline_md_density + 1
+    )
+    
+    normalized_feature_tensor = (
+        final_feature_tensor - torch.mean(final_feature_tensor, axis=0)
+    ) / torch.std(
+        final_feature_tensor, axis=0
+    )
+    
+    outcomes = torch.tensor(battles.scores.tolist())
+    
+    model_features, unique_models = one_hot_encode(
+        battles.model.tolist(), 
+        baseline=JUDGE_SETTINGS[category]["baseline"]
+    )
+    all_features = torch.cat([model_features, normalized_feature_tensor], dim=1)
+    
+    if "length" in control_features and "markdown" in control_features:
+        num_features = 4
+    elif "length" in control_features:
+        all_features = all_features[:, :1]
+        num_features = 1
+    elif "markdown" in control_features:
+        all_features = all_features[:, 1:]
+        num_features = 3
+    else:
+        assert False, "Invalid control features"
+        
+    coefs, _ = bootstrap_pairwise_model(all_features, outcomes, loss_type="bt")
+    
+    _coefs = coefs[:, :-num_features]
+    
+    table = pd.DataFrame(
+        columns=unique_models, 
+        data=to_winrate_probabilities(
+            _coefs, 
+            unique_models,
+            baseline_model=JUDGE_SETTINGS[category]["baseline"]
+        ).tolist()
+    )
+    
+    _leaderboard = format_confidence_interval(
+        table.quantile(0.5).to_frame("scores").reset_index().rename(columns={"index": "model"}), 
+        table.quantile(0.05).to_frame("lower").reset_index().rename(columns={"index": "model"}), 
+        table.quantile(0.95).to_frame("upper").reset_index().rename(columns={"index": "model"}), 
+    )
+
+    print(f"##### Category: {category} #####")
+    print(_leaderboard.to_string())
+    print(f"Feature Coefs: {torch.quantile(coefs[:, -num_features:], 0.5, axis=0)}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--bench-name", type=str, default="arena-hard-v0.1")
-    parser.add_argument("--judge-name", type=str, default="gpt-4-1106-preview")
-    parser.add_argument("--baseline", type=str, default="gpt-4-0314")
-    parser.add_argument("--load-bootstrap", action="store_true")
-    parser.add_argument("--show-elo", action="store_true")
-    parser.add_argument("--weight", type=int, default=3)
-    parser.add_argument("--num-rounds", type=int, default=100)
-    parser.add_argument("--output", action="store_true")
-    parser.add_argument("--first-game-only", action="store_true")
-    parser.add_argument("--style-control", action="store_true")
-    parser.add_argument("--length-control-only", action="store_true")
-    parser.add_argument("--markdown-control-only", action="store_true")
+    parser.add_argument("--benchmark", "-b", type=str, default="arena-hard-v2.0")
+    parser.add_argument("--judge-names", "-j", nargs="+", default=["gpt-4.1"])
+    parser.add_argument("--control-features", "-f", nargs="+", default=[])
+    parser.add_argument("--category", "-c", nargs="+", default=['hard_prompt'])
     args = parser.parse_args()
-    print(args)
-    assert not args.load_bootstrap or (args.load_battles and args.load_bootstrap), "If loading prexisting bootstrapping data, you must also load preexisting battles."
-    assert sum([args.style_control, args.length_control_only, args.markdown_control_only]) < 2, "You can only control one of the three: length, markdown, or both style."
-
-    answer_dir = os.path.join("data", args.bench_name, "model_answer")
-    model_answers = load_model_answers(answer_dir)
     
-    battles = get_battles_from_judgment(args.bench_name, 
-                                        args.judge_name, 
-                                        args.first_game_only, 
-                                        args.weight, 
-                                        args.baseline,
-                                        args.style_control or args.length_control_only or args.markdown_control_only)
+    battles = load_judgments(args.judge_names, args.benchmark)
     
-    if args.style_control:
-        X, Y, models = construct_style_matrices(battles)
-        bt_model_coef, style_coef = fit_bt(X, Y, models, baseline_model=args.baseline)
-        bootstrap_model_coef, _ = get_bootstrap_result_style_control(X, Y, battles, models, 
-                                                                     fit_bt, 
-                                                                     num_round=args.num_rounds, 
-                                                                     baseline_model=args.baseline)
-        display_coefs = {STYLE_CONTROL_ELEMENTS[i]: round(style_coef[i], 3) for i in range(len(STYLE_CONTROL_ELEMENTS) // 2)}
-        print(f"Style Coefficients: {display_coefs}")
-    elif args.length_control_only:
-        X, Y, models = construct_style_matrices(battles, 
-                                                apply_ratio=[1], 
-                                                style_elements=LENGTH_CONTROL_ELEMENTS)
-        bt_model_coef, style_coef = fit_bt(X, Y, models, baseline_model=args.baseline)
-        bootstrap_model_coef, _ = get_bootstrap_result_style_control(X, Y, battles, models, 
-                                                                     fit_bt, 
-                                                                     num_round=args.num_rounds, 
-                                                                     baseline_model=args.baseline)
-        display_coefs = {LENGTH_CONTROL_ELEMENTS[i]: round(style_coef[i], 3) for i in range(len(LENGTH_CONTROL_ELEMENTS) // 2)}
-        print(f"Style Coefficients: {display_coefs}")
-    elif args.markdown_control_only:
-        X, Y, models = construct_style_matrices(battles, 
-                                                apply_ratio=[1, 1, 1], 
-                                                style_elements=MARKDOWN_CONTROL_ELEMENTS)
-        bt_model_coef, style_coef = fit_bt(X, Y, models, baseline_model=args.baseline)
-        bootstrap_model_coef, _ = get_bootstrap_result_style_control(X, Y, battles, models, 
-                                                                     fit_bt, 
-                                                                     num_round=args.num_rounds, 
-                                                                     baseline_model=args.baseline)
-        display_coefs = {MARKDOWN_CONTROL_ELEMENTS[i]: round(style_coef[i], 3) for i in range(len(MARKDOWN_CONTROL_ELEMENTS) // 2)}
-        print(f"Style Coefficients: {display_coefs}")
-    else:
-        bt_model_coef = compute_mle_elo(battles, baseline_model=args.baseline)
-        bootstrap_model_coef = get_bootstrap_result(battles, compute_mle_elo, args.num_rounds, args.baseline)
-
-    stats = pd.DataFrame()
-    stats["results"] = None
-    stats["results"] = stats['results'].astype('object')
-
-    for i, model in enumerate(bt_model_coef.index):
-        assert model in bootstrap_model_coef.columns
-
-        stats.at[i, "model"] = model
-        stats.at[i, "score"] = bt_model_coef[model]
-        stats.at[i, "lower"] = np.percentile(bootstrap_model_coef[model], 2.5)
-        stats.at[i, "upper"] = np.percentile(bootstrap_model_coef[model], 97.5)
-
-        length = 0
-        if model in model_answers:
-            for _, row in model_answers[model].items():
-                turn = row["choices"][0]["turns"][0]
-                if "token_len" in turn:
-                    length += turn["token_len"]
-                else:
-                    length += row["conv_metadata"]["token_len"]
-            length /= len(model_answers[model])
-
-        stats.at[i, "avg_tokens"] = int(length)
-        stats.at[i, "results"] = bootstrap_model_coef[model].tolist()
-    
-    if not args.show_elo:
-        stats.sort_values(by="model", inplace=True)
-        stats["score"] = get_win_rate_column(stats, "score", args.baseline).tolist()
-        stats["lower"] = get_win_rate_column(stats, "lower", args.baseline).tolist()
-        stats["upper"] = get_win_rate_column(stats, "upper", args.baseline).tolist()
-        decimal = 1
-    else:
-        decimal = 0
-        stats = stats.astype({"score" : int, "lower" : int, "upper" : int})
-    
-    stats.sort_values(by="score", ascending=False, inplace=True)
-    for _, row in stats.iterrows():
-        interval = str((round(row['lower'] - row['score'], decimal), round(row['upper'] - row['score'], decimal)))
-        print(f"{row['model'] : <30} | score: {round(row['score'], decimal) : ^5} | 95% CI: {interval : ^12} | average #tokens: {int(row['avg_tokens'])}")
-
-    # If outputting leaderboard to a csv file.
-    if args.output:
-        cur_date = datetime.datetime.now()
-        date_str = cur_date.strftime("%Y%m%d")
-        stats = stats.drop(columns=['results'])
-        CI = []
-        for i in range(len(stats)):
-            score = stats.iloc[i]['score']
-            upper = stats.iloc[i]['upper']
-            lower = stats.iloc[i]['lower']
-            CI.append(f"(-{(score-lower):.2f}, +{(upper-score):.2f})")
-
-        stats["CI"] = CI
-        col_list = list(stats)
-        stats = stats.loc[:,col_list]
-        stats.rename(columns={'upper': 'rating_q975'}, inplace=True)
-        stats.rename(columns={'lower': 'rating_q025'}, inplace=True)
-
-        col_list = list(stats)
-        col_list[-2], col_list[-1] = col_list[-1], col_list[-2]
-        stats = stats.loc[:,col_list]
-        stats['date'] = date_str[:4] + '-' + date_str[4:6] + '-' + date_str[6:]
-        stats.to_csv(f"leaderboard/arena_hard_leaderboard_{date_str}.csv", index=False)
+    for category in args.category:
+        assert category in battles.category.unique(), f"Invalid category: {category}"
+        
+        battles = battles[battles.category == category].reset_index(drop=True)
+        
+        if args.control_features:
+            print(f"INFO: Control features: {args.control_features}")
+            
+            print_leaderboard_with_style_features(
+                battles, 
+                args.benchmark, 
+                category,
+                args.control_features
+            )
+                
+        else:
+            print_leaderboard(battles, category)
+        
