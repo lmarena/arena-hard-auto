@@ -43,7 +43,6 @@ def _sglang_server_heartbeat(
     )
     with urllib.request.urlopen(req, timeout=2) as out:
         out_data = out.read()
-    #output = json.loads(out_data.decode("utf-8"))
     output = out_data.decode("utf-8")
     return {
         "output": output,
@@ -115,7 +114,6 @@ class SGLangServerExecutor:
             kwargs["port"] = server_port
         kwargs.setdefault("skip_tokenizer_init", True)
         kwargs.setdefault("log_level", "warning")
-        #kwargs.setdefault("decode_log_interval", 1000000000)
         # NB(peter): fa3 backend requires sglang >= 0.4.5.
         kwargs.setdefault("attention_backend", "fa3")
         if backend == "spawn":
@@ -173,8 +171,6 @@ class SGLangServerExecutor:
             self._server_port = server_port
             self._server_proc = proc
             self._server_pid = proc.pid
-        elif backend == "docker":
-            raise NotImplementedError
         else:
             raise NotImplementedError
         assert self._server_pid is not None
@@ -206,8 +202,6 @@ class SGLangServerExecutor:
                         print(f"DEBUG: SGLangServerExecutor: post init: heartbeat: ok")
                 except Exception as e:
                     print(f"DEBUG: SGLangServerExecutor: post init: retry heartbeat: exception = {e}")
-                    #print(f"DEBUG: SGLangServerExecutor: post init: retry heartbeat: traceback:")
-                    #print(traceback.format_exc())
                     print(f"DEBUG: SGLangServerExecutor: post init: retry heartbeat: sleep...")
                     time.sleep(10.0)
                     continue
@@ -220,9 +214,6 @@ class SGLangServerExecutor:
             sglang.srt.utils.kill_process_tree(self._server_pid)
             self._server_proc = None
         elif self._server_backend == "subprocess":
-            if False:
-                from tenet.utils.process import terminate_process_group
-                terminate_process_group(self._server_pid)
             self._server_proc.kill()
             self._server_proc = None
             self._server_pid = None
@@ -302,10 +293,6 @@ class SGLangServerExecutor:
                 return_when=concurrent.futures.FIRST_COMPLETED
             )
             self._pool_work = work
-            if False:
-                assert len(done) <= 1
-                if not done:
-                    continue
             for w in done:
                 ctr, key = self._pool_dict.pop(w)
                 result = w.result()
