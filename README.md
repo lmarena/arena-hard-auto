@@ -1,6 +1,6 @@
 # Arena-Hard-Auto
 
-> 🚨 Arena-Hard-v2.0-Preview is finally here! Better judges, new hard prompts, and additional evaluation for creative writing!
+> 🚨 Arena-Hard-v2.0 is finally here! Better judges, new hard prompts, and additional eval for creative writing!
 
 Arena-Hard-Auto ([See Paper](https://arxiv.org/abs/2406.11939)) is an automatic evaluation tool for instruction-tuned LLMs. Arena-Hard-Auto has the highest correlation and separability to LMArena (Chatbot Arena) among popular open-ended LLM benchmarks ([See Paper](https://arxiv.org/abs/2406.11939)). If you are curious to see how well your model might perform on LMArena before deploying, we recommend trying Arena-Hard-Auto's newest evaluation set, **Arena-Hard-v2.0-Preview**.
 
@@ -17,7 +17,9 @@ Although both Arena-Hard-Auto and Chatbot Arena Category Hard ([See Blog](https:
 - [Citation](#citation)
 
 
-# Arena-Hard-v2.0-Preview Leaderboard
+## Leaderboard
+
+### Arena-Hard-v2.0-Preview
 
 Hard Prompt, Style Control, and Gemini-2.5 as Judge **(Official Configuration)**:
 ```console
