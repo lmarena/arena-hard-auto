@@ -2,6 +2,7 @@ import torch
 import os
 
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 import multiprocessing as mp
@@ -9,8 +10,7 @@ import multiprocessing as mp
 from tqdm import tqdm
 from dataclasses import dataclass
 from functools import partial
-from typing import Dict, Tuple, Callable, Optional
-from concurrent.futures import ProcessPoolExecutor
+from typing import Dict, Callable, Optional
 
 REGISTER_LOSSES: Dict[str, Callable] = {}
 REGISTER_MODELS: Dict[str, Callable] = {}
@@ -70,12 +70,12 @@ def bt_loss(
     alpha: float = 0.5,
     **kwargs,
 ):
-    # reg_loss = alpha * torch.linalg.norm(logits, dim=-1)
-    
-    probs = torch.sigmoid(logits)
-    
-    # TODO: current implementation works for ties if tie outcomes=0.5
-    loss = -(torch.log(probs) * outcomes + torch.log(1.0 - probs) * (1.0 - outcomes)).sum()
+    # more stable than the original implementation
+    loss = F.binary_cross_entropy_with_logits(
+        logits,
+        outcomes.float(),
+        reduction='sum'
+    )
     
     return loss
     
@@ -111,7 +111,7 @@ def fit_pairwise_model(
     outcomes: torch.Tensor,
     loss_type: str = 'bt', 
     indices: torch.Tensor = None,
-    lr: float = 1.0, 
+    lr: float = 0.1, 
     tol: float = 1e-9, 
     max_epochs: int = 50
 ):
@@ -121,6 +121,8 @@ def fit_pairwise_model(
     if indices is not None:
         features = features[indices]
         outcomes = outcomes[indices]
+        
+    assert not features.isnan().any()
     
     model = model_cls(num_components=features.shape[1])
 
