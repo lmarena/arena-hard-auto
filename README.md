@@ -17,32 +17,62 @@ Although both Arena-Hard-Auto and Chatbot Arena Category Hard ([See Blog](https:
 - [Citation](#citation)
 
 
-# Leaderboard
+# Arena-Hard-v2.0-Preview Leaderboard
 
-**Arena-Hard-v2.0-Preview (Hard Prompt, Style Control, GPT-4.1 as Judge)**
+Hard Prompt, Style Control, and Gemini-2.5 as Judge **(Official Configuration)**:
 ```console
                                       Model  Scores (%)         CI (%)
-0                             o3-2025-04-16        87.6  (-0.8 / +1.0)
-1                   o4-mini-2025-04-16-high        82.7  (-1.4 / +1.3)
-2                        o4-mini-2025-04-16        78.9  (-1.6 / +1.6)
-3                   o3-mini-2025-01-31-high        64.0  (-2.0 / +2.1)
-4                        o1-2024-12-17-high        57.8  (-2.7 / +1.9)
-5                        o3-mini-2025-01-31        50.0  (-0.0 / +0.0)
-6                               deepseek-r1        48.7  (-2.6 / +2.3)
-7                             o1-2024-12-17        48.1  (-1.8 / +2.6)
-8   claude-3-7-sonnet-20250219-thinking-16k        47.0  (-2.2 / +1.9)
-9                              gpt-4.1-mini        47.0  (-2.0 / +3.0)
-10                                  QwQ-32B        35.7  (-2.2 / +2.2)
-11               claude-3-5-sonnet-20241022        25.5  (-2.3 / +2.3)
-12                             gpt-4.1-nano        13.6  (-1.3 / +1.5)
-13                           Athene-V2-Chat        11.2  (-1.3 / +1.3)
-14           llama4-maverick-instruct-basic        10.5  (-1.2 / +1.5)
-15                           gemma-3-27b-it         8.0  (-1.0 / +0.9)
-16       Llama-3.1-Nemotron-70B-Instruct-HF         5.6  (-0.8 / +0.8)
-17                         OpenThinker2-32B         1.4  (-0.2 / +0.2)
+0                             o3-2025-04-16        85.0  (-1.0 / +0.9)
+1                   o4-mini-2025-04-16-high        77.5  (-1.2 / +1.6)
+2                        o4-mini-2025-04-16        72.8  (-1.5 / +1.5)
+3                   o3-mini-2025-01-31-high        64.5  (-1.7 / +2.1)
+4                        o1-2024-12-17-high        59.1  (-2.1 / +1.8)
+5   claude-3-7-sonnet-20250219-thinking-16k        58.6  (-1.1 / +1.7)
+6                               deepseek-r1        56.3  (-1.8 / +1.7)
+7                             o1-2024-12-17        53.7  (-2.6 / +2.2)
+8                        o3-mini-2025-01-31        50.0  (-0.0 / +0.0)
+9                                   gpt-4.1        48.9  (-2.9 / +2.0)
+10                          gpt-4.5-preview        48.4  (-2.0 / +2.3)
+11                             gpt-4.1-mini        45.8  (-2.4 / +1.8)
+12                                  QwQ-32B        42.1  (-1.6 / +2.0)
+13               claude-3-5-sonnet-20241022        32.0  (-1.9 / +1.9)
+14                                 s1.1-32B        21.3  (-1.6 / +1.5)
+15           llama4-maverick-instruct-basic        16.4  (-1.3 / +1.2)
+16                           Athene-V2-Chat        15.7  (-1.2 / +1.4)
+17                           gemma-3-27b-it        14.4  (-1.2 / +0.9)
+18                             gpt-4.1-nano        13.2  (-0.9 / +1.2)
+19       Llama-3.1-Nemotron-70B-Instruct-HF         9.8  (-1.1 / +1.1)
+20                     Qwen2.5-72B-Instruct         9.6  (-0.9 / +1.1)
+21                         OpenThinker2-32B         3.2  (-0.3 / +0.4)
 ```
 
-**Arena-Hard-v2.0-Preview (Creative Writing, GPT-4.1 and Gemini 2.5 as Judges)**
+Hard Prompt, Style Control, and GPT-4.1 as Judge **(If prefer OpenAI api)**
+```console
+                                      Model  Scores (%)         CI (%)
+0                             o3-2025-04-16        85.9  (-1.1 / +1.2)
+1                   o4-mini-2025-04-16-high        80.2  (-1.3 / +1.8)
+2                        o4-mini-2025-04-16        76.5  (-1.9 / +1.3)
+3                   o3-mini-2025-01-31-high        62.2  (-1.9 / +2.0)
+4                        o1-2024-12-17-high        55.3  (-1.7 / +2.2)
+5                        o3-mini-2025-01-31        50.0  (-0.0 / +0.0)
+6                             o1-2024-12-17        47.0  (-2.6 / +2.3)
+7                              gpt-4.1-mini        46.4  (-2.3 / +2.3)
+8                               deepseek-r1        46.1  (-2.2 / +2.1)
+9   claude-3-7-sonnet-20250219-thinking-16k        45.0  (-1.8 / +1.6)
+10                          gpt-4.5-preview        40.7  (-1.9 / +1.9)
+11                                  QwQ-32B        34.9  (-2.2 / +2.0)
+12               claude-3-5-sonnet-20241022        24.6  (-2.3 / +2.0)
+13                                 s1.1-32B        17.1  (-1.6 / +1.8)
+14                             gpt-4.1-nano        14.4  (-1.5 / +1.5)
+15                           Athene-V2-Chat        11.6  (-1.1 / +1.1)
+16           llama4-maverick-instruct-basic        10.9  (-0.8 / +1.2)
+17                           gemma-3-27b-it         8.7  (-0.7 / +1.0)
+18                     Qwen2.5-72B-Instruct         7.2  (-0.8 / +1.0)
+19       Llama-3.1-Nemotron-70B-Instruct-HF         6.2  (-0.5 / +0.7)
+20                         OpenThinker2-32B         2.1  (-0.3 / +0.2)
+```
+
+Creative Writing, Ensemble GPT-4.1 and Gemini 2.5 as Judges
 ```console
                                       Model  Scores (%)         CI (%)
 0                             o3-2025-04-16        88.6  (-1.1 / +1.1)
