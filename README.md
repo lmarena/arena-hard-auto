@@ -1,10 +1,10 @@
 # Arena-Hard-Auto
 
-> 🚨 Arena-Hard-v2.0-Preview is finally here! Better judges, harder prompts, and additional evaluation for creative writing!
+> 🚨 Arena-Hard-v2.0-Preview is finally here! Better judges, new hard prompts, and additional evaluation for creative writing!
 
 Arena-Hard-Auto ([See Paper](https://arxiv.org/abs/2406.11939)) is an automatic evaluation tool for instruction-tuned LLMs. Arena-Hard-Auto has the highest correlation and separability to LMArena (Chatbot Arena) among popular open-ended LLM benchmarks ([See Paper](https://arxiv.org/abs/2406.11939)). If you are curious to see how well your model might perform on LMArena before deploying, we recommend trying Arena-Hard-Auto's newest evaluation set, **Arena-Hard-v2.0-Preview**.
 
-V2.0 contains 500 challenging user queries and 250 creative writing queries sourced from Chatbot Arena. We employs automatic judges, GPT-4.1 and Gemini-2.5, as a cheaper and faster approximator to human preference.
+V2.0 contains 500 fresh, challenging real-world user queries (open-ended software engineering problems, math questions, etc) and 250 creative writing queries sourced from Chatbot Arena. We employs automatic judges, GPT-4.1 and Gemini-2.5, as a cheaper and faster approximator to human preference.
 
 Although both Arena-Hard-Auto and Chatbot Arena Category Hard ([See Blog](https://lmsys.org/blog/2024-05-17-category-hard/)) employ similar pipeline to select hard prompts, Arena-Hard-Auto employs automatic judge as a cheaper and faster approximator to human preference. Checkout [BenchBuilder](BenchBuilder) folder for code and resources on how we curate Arena-Hard-Auto. In the paper we also purposed metrics, such as model separability and agreement to human preference, for evaluating benchmarks' ability to rank models (See [Evaluate Benchmarks](#evaluate-benchmarks) for more information and code).
 
@@ -69,7 +69,7 @@ For older leaderboards, such as Arena-Hard-v0.1, see [past-leaderboards](/misc/p
 
 ## Install Dependencies
 ```
-git clone https://github.com/lm-sys/arena-hard.git
+git clone https://github.com/lmarena/arena-hard-auto.git
 cd arena-hard
 pip install -r requirements.txt
 pip install -r requirements-optional.txt  # Optional dependencies (e.g., anthropic sdk)
@@ -200,6 +200,12 @@ For **Agreement with Confidence**, and **Pair Rank Brier Score**, please refer t
 ## Community Contribution
 
 Feel free to submit a PR or open up an issue!
+
+If you want to add your model to the leaderboard, please email me the following:
+1. An OpenAI compatible endpoint to your model.
+2. An OpenAI API key for me to inference judgment.
+
+Sorry for the inconvience! Since Arena-Hard-Auto is open data, we want to avoid people cheating on our leaderboard. If we find anything suspicious, we reserve the right to not add your model to our leaderboard.
 
 ## Citation
 The code in this repository is developed from the papers below. Please cite it if you find the repository helpful.
