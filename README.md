@@ -48,7 +48,7 @@ Hard Prompt, Style Control, and Gemini-2.5 as Judge **(Official Configuration)**
 21                         OpenThinker2-32B         3.2  (-0.3 / +0.4)
 ```
 
-Hard Prompt, Style Control, and GPT-4.1 as Judge **(If prefer OpenAI api)**
+Hard Prompt, Style Control, and GPT-4.1 as Judge **(If prefer OpenAI API)**
 ```console
                                       Model  Scores (%)         CI (%)
 0                             o3-2025-04-16        85.9  (-1.1 / +1.2)
@@ -77,24 +77,27 @@ Hard Prompt, Style Control, and GPT-4.1 as Judge **(If prefer OpenAI api)**
 Creative Writing, Ensemble GPT-4.1 and Gemini 2.5 as Judges
 ```console
                                       Model  Scores (%)         CI (%)
-0                             o3-2025-04-16        88.6  (-1.1 / +1.1)
-1                               deepseek-r1        77.1  (-1.6 / +1.6)
-2                            gemma-3-27b-it        69.8  (-1.9 / +1.6)
-3   claude-3-7-sonnet-20250219-thinking-16k        64.2  (-2.0 / +2.0)
-4                                   QwQ-32B        60.8  (-1.7 / +1.8)
-5                        o1-2024-12-17-high        60.0  (-1.5 / +1.9)
-6                   o4-mini-2025-04-16-high        58.5  (-1.9 / +2.0)
-7                             o1-2024-12-17        56.3  (-2.1 / +1.9)
-8                        o4-mini-2025-04-16        55.5  (-2.0 / +2.3)
-9                      gemini-2.0-flash-001        50.0  (-0.0 / +0.0)
-10                  o3-mini-2025-01-31-high        43.0  (-2.0 / +1.9)
-11                             gpt-4.1-mini        28.2  (-1.5 / +1.7)
-12       Llama-3.1-Nemotron-70B-Instruct-HF        27.1  (-1.5 / +1.9)
-13               claude-3-5-sonnet-20241022        24.3  (-1.5 / +1.5)
-14                         OpenThinker2-32B        22.6  (-1.5 / +1.4)
-15                           Athene-V2-Chat        18.0  (-1.3 / +1.1)
-16                             gpt-4.1-nano        10.7  (-1.1 / +0.9)
-17           llama4-maverick-instruct-basic        10.4  (-1.0 / +1.0)
+0                             o3-2025-04-16        88.8  (-0.9 / +1.3)
+1                               deepseek-r1        77.1  (-1.8 / +1.6)
+2                            gemma-3-27b-it        69.8  (-1.7 / +1.7)
+3   claude-3-7-sonnet-20250219-thinking-16k        63.9  (-2.2 / +2.0)
+4                                   QwQ-32B        61.2  (-2.0 / +1.9)
+5                        o1-2024-12-17-high        59.8  (-2.1 / +1.7)
+6                   o4-mini-2025-04-16-high        58.7  (-1.6 / +1.6)
+7                             o1-2024-12-17        56.6  (-2.0 / +2.6)
+8                        o4-mini-2025-04-16        55.6  (-2.0 / +1.9)
+9                           gpt-4.5-preview        51.6  (-1.9 / +1.8)
+10                     gemini-2.0-flash-001        50.0  (-0.0 / +0.0)
+11                  o3-mini-2025-01-31-high        43.1  (-1.8 / +2.1)
+12                             gpt-4.1-mini        28.1  (-2.0 / +1.8)
+13       Llama-3.1-Nemotron-70B-Instruct-HF        27.4  (-1.7 / +1.8)
+14               claude-3-5-sonnet-20241022        24.4  (-1.7 / +2.0)
+15                         OpenThinker2-32B        23.8  (-1.3 / +1.3)
+16                           Athene-V2-Chat        18.1  (-1.6 / +1.5)
+17                             gpt-4.1-nano        10.6  (-1.2 / +1.3)
+18           llama4-maverick-instruct-basic        10.4  (-0.9 / +1.2)
+19                     Qwen2.5-72B-Instruct        10.2  (-0.9 / +1.1)
+20                                 s1.1-32B         8.2  (-1.0 / +0.8)
 ```
 
 For older leaderboards, such as Arena-Hard-v0.1, see [past-leaderboards](/misc/past_leaderboards.md)
@@ -191,8 +194,8 @@ Output model win rates for **Arena-Hard-v2.0-Preview (Creative Writing, GPT-4.1 
 > python show_result.py --judge-names gpt-4.1 gemini-2.5 --category creative_writing
 ```
 
-### Step 5. Arena Hard UI (not yet supported)
-You can review individual judgment results using our UI code.
+### Step 5. Benchmark Viewer
+You can review answers and judgment results using our gradio script (`gradio>=5.25.2`).
 ```console
 > python qa_browser.py --share
 ```

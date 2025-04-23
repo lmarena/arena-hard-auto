@@ -4,7 +4,6 @@ numpy
 pandas
 shortuuid
 tqdm
-gradio==3.40.0
-httpx==0.25.2
+gradio==5.25.2
 plotly
 scikit-learn
