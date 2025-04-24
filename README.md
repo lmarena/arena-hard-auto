@@ -37,22 +37,22 @@ Although both Arena-Hard-Auto and Chatbot Arena Category Hard ([See Blog](https:
 
 Hard Prompt, Style Control, and Gemini-2.5 as Judge **(Official Configuration)**:
 ```console
-                                      Model  Scores (%)         CI (%)                                                                       
-0                             o3-2025-04-16        86.1  (-1.1 / +1.1)                                                                       
-1                                gemini-2.5        79.3  (-1.5 / +1.9)                                                                       
-2                   o4-mini-2025-04-16-high        79.2  (-1.2 / +1.5)                                                                       
-3                        o4-mini-2025-04-16        74.8  (-1.4 / +1.4)                                                                       
-4                          gemini-2.5-flash        69.0  (-1.3 / +1.9)                                                                       
-5                   o3-mini-2025-01-31-high        66.5  (-1.9 / +1.4)                                                                       
-6   claude-3-7-sonnet-20250219-thinking-16k        61.1  (-2.1 / +1.5)                                                                       
-7                        o1-2024-12-17-high        61.0  (-1.6 / +1.8)                                                                       
-8                               deepseek-r1        57.9  (-2.4 / +2.3)                                                                       
-9                             o1-2024-12-17        56.0  (-1.7 / +2.0)                                                                       
-10                          gpt-4.5-preview        50.7  (-1.8 / +1.7)                                                                       
-11                                  gpt-4.1        50.7  (-2.3 / +1.9)                                                                       
-12                       o3-mini-2025-01-31        50.0  (-0.0 / +0.0)                                                                       
-13                             gpt-4.1-mini        47.2  (-1.9 / +2.6)                                                                       
-14                                  QwQ-32B        43.7  (-2.4 / +2.1)                                                                       
+                                      Model  Scores (%)         CI (%)
+0                             o3-2025-04-16        86.1  (-1.1 / +1.1)
+1                                gemini-2.5        79.3  (-1.5 / +1.9)
+2                   o4-mini-2025-04-16-high        79.2  (-1.2 / +1.5)
+3                        o4-mini-2025-04-16        74.8  (-1.4 / +1.4)
+4                          gemini-2.5-flash        69.0  (-1.3 / +1.9)
+5                   o3-mini-2025-01-31-high        66.5  (-1.9 / +1.4)
+6   claude-3-7-sonnet-20250219-thinking-16k        61.1  (-2.1 / +1.5)
+7                        o1-2024-12-17-high        61.0  (-1.6 / +1.8)
+8                               deepseek-r1        57.9  (-2.4 / +2.3)
+9                             o1-2024-12-17        56.0  (-1.7 / +2.0)
+10                          gpt-4.5-preview        50.7  (-1.8 / +1.7)
+11                                  gpt-4.1        50.7  (-2.3 / +1.9)
+12                       o3-mini-2025-01-31        50.0  (-0.0 / +0.0)
+13                             gpt-4.1-mini        47.2  (-1.9 / +2.6)
+14                                  QwQ-32B        43.7  (-2.4 / +2.1)
 15               claude-3-5-sonnet-20241022        33.6  (-1.9 / +1.7) 
 16                                 s1.1-32B        22.2  (-1.6 / +1.6) 
 17           llama4-maverick-instruct-basic        17.5  (-1.4 / +1.6) 
@@ -93,30 +93,33 @@ Hard Prompt, Style Control, and GPT-4.1 as Judge **(If prefer OpenAI API)**
 23                         OpenThinker2-32B         2.2  (-0.2 / +0.3)
 ```
 
-Creative Writing, Ensemble GPT-4.1 and Gemini 2.5 as Judges
+Creative Writing, Ensemble GPT-4.1 and Gemini 2.5 as Judges **(Best Configuration for Creative Writing)**
 ```console
                                       Model  Scores (%)         CI (%)
-0                             o3-2025-04-16        88.8  (-0.9 / +1.3)
-1                               deepseek-r1        77.1  (-1.8 / +1.6)
-2                            gemma-3-27b-it        69.8  (-1.7 / +1.7)
-3   claude-3-7-sonnet-20250219-thinking-16k        63.9  (-2.2 / +2.0)
-4                                   QwQ-32B        61.2  (-2.0 / +1.9)
-5                        o1-2024-12-17-high        59.8  (-2.1 / +1.7)
-6                   o4-mini-2025-04-16-high        58.7  (-1.6 / +1.6)
-7                             o1-2024-12-17        56.6  (-2.0 / +2.6)
-8                        o4-mini-2025-04-16        55.6  (-2.0 / +1.9)
-9                           gpt-4.5-preview        51.6  (-1.9 / +1.8)
-10                     gemini-2.0-flash-001        50.0  (-0.0 / +0.0)
-11                  o3-mini-2025-01-31-high        43.1  (-1.8 / +2.1)
-12                             gpt-4.1-mini        28.1  (-2.0 / +1.8)
-13       Llama-3.1-Nemotron-70B-Instruct-HF        27.4  (-1.7 / +1.8)
-14               claude-3-5-sonnet-20241022        24.4  (-1.7 / +2.0)
-15                         OpenThinker2-32B        23.8  (-1.3 / +1.3)
-16                           Athene-V2-Chat        18.1  (-1.6 / +1.5)
-17                             gpt-4.1-nano        10.6  (-1.2 / +1.3)
-18           llama4-maverick-instruct-basic        10.4  (-0.9 / +1.2)
-19                     Qwen2.5-72B-Instruct        10.2  (-0.9 / +1.1)
-20                                 s1.1-32B         8.2  (-1.0 / +0.8)
+0                                gemini-2.5        90.8  (-1.0 / +1.2)
+1                             o3-2025-04-16        88.8  (-1.2 / +1.1)
+2                          gemini-2.5-flash        83.8  (-1.6 / +1.2)
+3                               deepseek-r1        77.2  (-1.6 / +1.7)
+4                            gemma-3-27b-it        69.8  (-1.5 / +1.8)
+5   claude-3-7-sonnet-20250219-thinking-16k        63.9  (-1.9 / +1.8)
+6                                   gpt-4.1        61.6  (-1.7 / +1.7)
+7                                   QwQ-32B        61.2  (-1.9 / +1.8)
+8                        o1-2024-12-17-high        60.0  (-1.7 / +1.5)
+9                   o4-mini-2025-04-16-high        58.5  (-1.5 / +1.8)
+10                            o1-2024-12-17        56.4  (-1.5 / +1.8)
+11                       o4-mini-2025-04-16        55.5  (-1.5 / +1.6)
+12                          gpt-4.5-preview        51.4  (-2.4 / +1.9)
+13                     gemini-2.0-flash-001        50.0  (-0.0 / +0.0)
+14                  o3-mini-2025-01-31-high        42.9  (-2.0 / +2.0)
+15                             gpt-4.1-mini        28.0  (-2.1 / +1.8)
+16       Llama-3.1-Nemotron-70B-Instruct-HF        27.3  (-1.6 / +1.5)
+17               claude-3-5-sonnet-20241022        24.1  (-1.8 / +1.6)
+18                         OpenThinker2-32B        23.6  (-1.1 / +1.4)
+19                           Athene-V2-Chat        17.9  (-1.2 / +1.3)
+20                             gpt-4.1-nano        10.7  (-1.2 / +1.3)
+21           llama4-maverick-instruct-basic        10.4  (-1.0 / +1.0)
+22                     Qwen2.5-72B-Instruct        10.2  (-1.3 / +1.1)
+23                                 s1.1-32B         8.2  (-0.8 / +0.8)
 ```
 
 For older leaderboards, such as Arena-Hard-v0.1, see [past-leaderboards](/misc/past_leaderboards.md)
@@ -208,7 +211,7 @@ Output model win rates for **Arena-Hard-v2.0-Preview (Hard Prompt, Style Control
 > python show_result.py --judge-names gpt-4.1 --control-features markdown length
 ```
 
-Output model win rates for **Arena-Hard-v2.0-Preview (Creative Writing, GPT-4.1 and Gemini 2.5 as Judges)**:
+Output model win rates for **Arena-Hard-v2.0-Preview (Creative Writing, Ensemble GPT-4.1 and Gemini 2.5 as Judges)**:
 ```console
 > python show_result.py --judge-names gpt-4.1 gemini-2.5 --category creative_writing
 ```
