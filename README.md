@@ -1,20 +1,34 @@
+<div align="center">
+
 # Arena-Hard-Auto
 
-> 🚨 Arena-Hard-v2.0 is finally here! Better judges, new hard prompts, and additional eval for creative writing!
+[![Github](https://img.shields.io/badge/Arena--Hard-black?logo=github&logoColor=white&labelColor=black&color=black)](https://github.com/lmarena/arena-hard-auto) [![arXiv](https://img.shields.io/badge/arXiv-Arena--Hard-b31b1b.svg)](https://arxiv.org/abs/2406.11939) [![Hugging Face Collection](https://img.shields.io/badge/Arena--Hard-fcd022?logo=huggingface&logoColor=000&labelColor)](https://huggingface.co/collections/lmarena-ai/arena-hard-auto-680998796296d1462c729b6c) [![Twitter](https://img.shields.io/badge/LMArena--ai-white?logo=X&logoColor=000&color=000&labelColor=white)](https://x.com/lmarena_ai)
 
-Arena-Hard-Auto ([See Paper](https://arxiv.org/abs/2406.11939)) is an automatic evaluation tool for instruction-tuned LLMs. Arena-Hard-Auto has the highest correlation and separability to LMArena (Chatbot Arena) among popular open-ended LLM benchmarks ([See Paper](https://arxiv.org/abs/2406.11939)). If you are curious to see how well your model might perform on LMArena before deploying, we recommend trying Arena-Hard-Auto's newest evaluation set, **Arena-Hard-v2.0-Preview**.
+
+<div align="center" style="font-family: Arial, sans-serif;">
+  <p>
+    <a href="#news" style="text-decoration: none; font-weight: bold;">News</a> •
+    <a href="#leaderboard" style="text-decoration: none; font-weight: bold;">Leaderboard</a> •
+    <a href="#install-dependencies" style="text-decoration: none; font-weight: bold;">Install</a> •
+    <a href="#evaluation" style="text-decoration: none; font-weight: bold;">Evaluation</a> •
+    <a href="https://huggingface.co/spaces/lmarena-ai/arena-hard-viewer" style="text-decoration: none; font-weight: bold;">Demo</a> •
+    <a href="#citation" style="text-decoration: none; font-weight: bold;">Citation</a>
+  </p>
+</div>
+
+</div>
+
+# News
+- **[Apr 23, 2025]** 🎉 **Arena-Hard-v2.0** is finally here! Better judges, new hard prompts, and additional eval for creative writing.
+- **[Oct 14, 2024]** 🎉 **Style Control** is now supported in Arena-Hard-Auto.
+
+## About
+
+Arena-Hard-Auto is an automatic evaluation tool for instruction-tuned LLMs. Arena-Hard-Auto has the highest correlation and separability to LMArena (Chatbot Arena) among popular open-ended LLM benchmarks ([See Paper](https://arxiv.org/abs/2406.11939)). If you are curious to see how well your model might perform on LMArena before deploying, we recommend trying Arena-Hard-Auto's newest evaluation set, **Arena-Hard-v2.0-Preview**.
 
 V2.0 contains 500 fresh, challenging real-world user queries (open-ended software engineering problems, math questions, etc) and 250 creative writing queries sourced from Chatbot Arena. We employs automatic judges, GPT-4.1 and Gemini-2.5, as a cheaper and faster approximator to human preference.
 
 Although both Arena-Hard-Auto and Chatbot Arena Category Hard ([See Blog](https://lmsys.org/blog/2024-05-17-category-hard/)) employ similar pipeline to select hard prompts, Arena-Hard-Auto employs automatic judge as a cheaper and faster approximator to human preference. Checkout [BenchBuilder](BenchBuilder) folder for code and resources on how we curate Arena-Hard-Auto. In the paper we also purposed metrics, such as model separability and agreement to human preference, for evaluating benchmarks' ability to rank models (See [Evaluate Benchmarks](#evaluate-benchmarks) for more information and code).
-
-## Content
-- [Leaderboard](#leaderboard)
-- [Install](#install-dependencies)
-- [Evaluation](#evaluate)
-- [Style Control: how to mitigate biases](#style-control)
-- [Evaluate Benchmarks: how to evaluate benchmarks](#evaluate-benchmarks)
-- [Citation](#citation)
 
 
 ## Leaderboard
@@ -23,55 +37,60 @@ Although both Arena-Hard-Auto and Chatbot Arena Category Hard ([See Blog](https:
 
 Hard Prompt, Style Control, and Gemini-2.5 as Judge **(Official Configuration)**:
 ```console
-                                      Model  Scores (%)         CI (%)
-0                             o3-2025-04-16        85.0  (-1.0 / +0.9)
-1                   o4-mini-2025-04-16-high        77.5  (-1.2 / +1.6)
-2                        o4-mini-2025-04-16        72.8  (-1.5 / +1.5)
-3                   o3-mini-2025-01-31-high        64.5  (-1.7 / +2.1)
-4                        o1-2024-12-17-high        59.1  (-2.1 / +1.8)
-5   claude-3-7-sonnet-20250219-thinking-16k        58.6  (-1.1 / +1.7)
-6                               deepseek-r1        56.3  (-1.8 / +1.7)
-7                             o1-2024-12-17        53.7  (-2.6 / +2.2)
-8                        o3-mini-2025-01-31        50.0  (-0.0 / +0.0)
-9                                   gpt-4.1        48.9  (-2.9 / +2.0)
-10                          gpt-4.5-preview        48.4  (-2.0 / +2.3)
-11                             gpt-4.1-mini        45.8  (-2.4 / +1.8)
-12                                  QwQ-32B        42.1  (-1.6 / +2.0)
-13               claude-3-5-sonnet-20241022        32.0  (-1.9 / +1.9)
-14                                 s1.1-32B        21.3  (-1.6 / +1.5)
-15           llama4-maverick-instruct-basic        16.4  (-1.3 / +1.2)
-16                           Athene-V2-Chat        15.7  (-1.2 / +1.4)
-17                           gemma-3-27b-it        14.4  (-1.2 / +0.9)
-18                             gpt-4.1-nano        13.2  (-0.9 / +1.2)
-19       Llama-3.1-Nemotron-70B-Instruct-HF         9.8  (-1.1 / +1.1)
-20                     Qwen2.5-72B-Instruct         9.6  (-0.9 / +1.1)
-21                         OpenThinker2-32B         3.2  (-0.3 / +0.4)
+                                      Model  Scores (%)         CI (%)                                                                       
+0                             o3-2025-04-16        86.1  (-1.1 / +1.1)                                                                       
+1                                gemini-2.5        79.3  (-1.5 / +1.9)                                                                       
+2                   o4-mini-2025-04-16-high        79.2  (-1.2 / +1.5)                                                                       
+3                        o4-mini-2025-04-16        74.8  (-1.4 / +1.4)                                                                       
+4                          gemini-2.5-flash        69.0  (-1.3 / +1.9)                                                                       
+5                   o3-mini-2025-01-31-high        66.5  (-1.9 / +1.4)                                                                       
+6   claude-3-7-sonnet-20250219-thinking-16k        61.1  (-2.1 / +1.5)                                                                       
+7                        o1-2024-12-17-high        61.0  (-1.6 / +1.8)                                                                       
+8                               deepseek-r1        57.9  (-2.4 / +2.3)                                                                       
+9                             o1-2024-12-17        56.0  (-1.7 / +2.0)                                                                       
+10                          gpt-4.5-preview        50.7  (-1.8 / +1.7)                                                                       
+11                                  gpt-4.1        50.7  (-2.3 / +1.9)                                                                       
+12                       o3-mini-2025-01-31        50.0  (-0.0 / +0.0)                                                                       
+13                             gpt-4.1-mini        47.2  (-1.9 / +2.6)                                                                       
+14                                  QwQ-32B        43.7  (-2.4 / +2.1)                                                                       
+15               claude-3-5-sonnet-20241022        33.6  (-1.9 / +1.7) 
+16                                 s1.1-32B        22.2  (-1.6 / +1.6) 
+17           llama4-maverick-instruct-basic        17.5  (-1.4 / +1.6) 
+18                           Athene-V2-Chat        16.5  (-1.0 / +1.5) 
+19                           gemma-3-27b-it        14.8  (-1.3 / +0.9) 
+20                             gpt-4.1-nano        14.1  (-1.3 / +1.0) 
+21       Llama-3.1-Nemotron-70B-Instruct-HF        10.1  (-0.9 / +0.8) 
+22                     Qwen2.5-72B-Instruct        10.1  (-0.8 / +1.3) 
+23                         OpenThinker2-32B         3.1  (-0.2 / +0.4)
 ```
 
 Hard Prompt, Style Control, and GPT-4.1 as Judge **(If prefer OpenAI API)**
 ```console
                                       Model  Scores (%)         CI (%)
-0                             o3-2025-04-16        85.9  (-1.1 / +1.2)
-1                   o4-mini-2025-04-16-high        80.2  (-1.3 / +1.8)
-2                        o4-mini-2025-04-16        76.5  (-1.9 / +1.3)
-3                   o3-mini-2025-01-31-high        62.2  (-1.9 / +2.0)
-4                        o1-2024-12-17-high        55.3  (-1.7 / +2.2)
-5                        o3-mini-2025-01-31        50.0  (-0.0 / +0.0)
-6                             o1-2024-12-17        47.0  (-2.6 / +2.3)
-7                              gpt-4.1-mini        46.4  (-2.3 / +2.3)
-8                               deepseek-r1        46.1  (-2.2 / +2.1)
-9   claude-3-7-sonnet-20250219-thinking-16k        45.0  (-1.8 / +1.6)
-10                          gpt-4.5-preview        40.7  (-1.9 / +1.9)
-11                                  QwQ-32B        34.9  (-2.2 / +2.0)
-12               claude-3-5-sonnet-20241022        24.6  (-2.3 / +2.0)
-13                                 s1.1-32B        17.1  (-1.6 / +1.8)
-14                             gpt-4.1-nano        14.4  (-1.5 / +1.5)
-15                           Athene-V2-Chat        11.6  (-1.1 / +1.1)
-16           llama4-maverick-instruct-basic        10.9  (-0.8 / +1.2)
-17                           gemma-3-27b-it         8.7  (-0.7 / +1.0)
-18                     Qwen2.5-72B-Instruct         7.2  (-0.8 / +1.0)
-19       Llama-3.1-Nemotron-70B-Instruct-HF         6.2  (-0.5 / +0.7)
-20                         OpenThinker2-32B         2.1  (-0.3 / +0.2)
+0                             o3-2025-04-16        87.1  (-1.1 / +1.0)
+1                   o4-mini-2025-04-16-high        81.9  (-1.7 / +1.2)
+2                        o4-mini-2025-04-16        78.1  (-1.6 / +1.5)
+3                   o3-mini-2025-01-31-high        65.4  (-2.2 / +2.3)
+4                                   gpt-4.1        59.0  (-2.4 / +2.2)
+5                        o1-2024-12-17-high        58.4  (-2.2 / +1.9)
+6                        o3-mini-2025-01-31        50.0  (-0.0 / +0.0)
+7                              gpt-4.1-mini        49.4  (-2.6 / +2.2)
+8                             o1-2024-12-17        49.4  (-1.8 / +2.6)
+9                                gemini-2.5        48.9  (-2.1 / +2.2)
+10                              deepseek-r1        48.3  (-2.1 / +2.5)
+11  claude-3-7-sonnet-20250219-thinking-16k        48.2  (-2.8 / +2.1)
+12                         gemini-2.5-flash        44.5  (-2.0 / +2.5)
+13                          gpt-4.5-preview        43.8  (-2.2 / +2.0)
+14                                  QwQ-32B        36.7  (-2.0 / +2.0)
+15               claude-3-5-sonnet-20241022        26.3  (-2.2 / +2.3)
+16                                 s1.1-32B        18.5  (-2.3 / +2.2)
+17                             gpt-4.1-nano        15.5  (-1.4 / +1.4)
+18                           Athene-V2-Chat        12.8  (-1.1 / +1.3)
+19           llama4-maverick-instruct-basic        12.4  (-1.0 / +1.3)
+20                           gemma-3-27b-it         9.5  (-0.7 / +0.9)
+21                     Qwen2.5-72B-Instruct         7.9  (-0.9 / +1.0)
+22       Llama-3.1-Nemotron-70B-Instruct-HF         6.8  (-0.9 / +0.6)
+23                         OpenThinker2-32B         2.2  (-0.2 / +0.3)
 ```
 
 Creative Writing, Ensemble GPT-4.1 and Gemini 2.5 as Judges
@@ -111,7 +130,7 @@ pip install -r requirements-optional.txt  # Optional dependencies (e.g., anthrop
 ```
 
 ## Download dataset
-We have pre-generated many popular models answers and judgments. You can browse them with an online [demo](https://huggingface.co/spaces/lmsys/arena-hard-browser) (not yet supported) or download them (with [`git-lfs`](https://git-lfs.com) installed) by
+We have pre-generated many popular models answers and judgments. You can browse them with an online [demo](https://huggingface.co/spaces/lmarena-ai/arena-hard-viewer) or download them (with [`git-lfs`](https://git-lfs.com) installed) by
 ```console
 > git lfs install
 > git clone git@hf.co:datasets/lmarena-ai/arena-hard-auto arena-hard-data

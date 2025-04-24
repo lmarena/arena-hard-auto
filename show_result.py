@@ -24,9 +24,9 @@ def load_judgments(judge_names, benchmark, weight=3):
         ])
     data = pd.concat(dfs).reset_index(drop=True)
     
-    if data.model.isin(judge_names).any():
-        print(f"WARNING: {judge_names} is already in the data. Removing it.")
-        data = data[~data.model.isin(judge_names)].reset_index(drop=True)
+    # if data.model.isin(judge_names).any():
+    #     print(f"WARNING: {judge_names} is already in the data. Removing it.")
+    #     data = data[~data.model.isin(judge_names)].reset_index(drop=True)
 
     null_indices = data.games.map(lambda x: x[0] is None or x[1] is None or x[0]['score'] is None or x[1]['score'] is None)
     _data = data[~null_indices].reset_index(drop=True)
@@ -153,8 +153,11 @@ def print_leaderboard_with_style_features(battles, benchmark, category,control_f
         model_feature_tensor[:, 0] + baseline_feature_tensor[:, 0]
     )
     
-    model_md_density = model_feature_tensor[:, 1:] / model_feature_tensor[:, :1]
-    baseline_md_density = baseline_feature_tensor[:, 1:] / baseline_feature_tensor[:, :1]
+    model_md_density = model_feature_tensor[:, 1:] / (model_feature_tensor[:, :1] + 1)
+    baseline_md_density = baseline_feature_tensor[:, 1:] / (baseline_feature_tensor[:, :1] + 1)
+    
+    assert not model_md_density.isnan().any()
+    assert not baseline_md_density.isnan().any()
     
     final_feature_tensor[:, 1:] = (
         model_md_density - baseline_md_density
@@ -162,19 +165,27 @@ def print_leaderboard_with_style_features(battles, benchmark, category,control_f
         model_md_density + baseline_md_density + 1
     )
     
+    assert not final_feature_tensor.isnan().any()
+    
     normalized_feature_tensor = (
         final_feature_tensor - torch.mean(final_feature_tensor, axis=0)
     ) / torch.std(
         final_feature_tensor, axis=0
     )
     
+    assert not normalized_feature_tensor.isnan().any()
+    
     outcomes = torch.tensor(battles.scores.tolist())
+    
+    assert not outcomes.isnan().any()
     
     model_features, unique_models = one_hot_encode(
         battles.model.tolist(), 
         baseline=JUDGE_SETTINGS[category]["baseline"]
     )
     all_features = torch.cat([model_features, normalized_feature_tensor], dim=1)
+    
+    assert not all_features.isnan().any()
     
     if "length" in control_features and "markdown" in control_features:
         num_features = 4
