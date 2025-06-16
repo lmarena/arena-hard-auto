@@ -6,6 +6,10 @@ import random
 import shortuuid
 import pandas as pd
 
+import requests
+from typing import Optional
+import boto3
+
 from glob import glob
 from tqdm import tqdm
 
@@ -852,3 +856,474 @@ def sglang_completion(
     df.to_json(answer_file, lines=True, orient="records", force_ascii=False)
     
     pass
+
+
+@register_api("aws_claude")
+def chat_completion_aws_bedrock_claude(messages, api_dict=None, aws_region="us-west-2", **kwargs):
+    """
+    Call AWS Bedrock API for chat completion
+    
+    Args:
+        model (str): Model ID
+        conv (object): Conversation object containing messages
+        temperature (float): Temperature parameter for response generation
+        max_tokens (int): Maximum tokens in response
+        api_dict (dict, optional): API configuration dictionary
+        aws_region (str, optional): AWS region, defaults to "us-west-2"
+        
+    Returns:
+        str: Generated response text or error message
+    """
+        
+    # Configure AWS client if api_dict provided
+    if api_dict is not None:
+        bedrock_rt_client = boto3.client(
+            service_name='bedrock-runtime',
+            region_name=aws_region,
+            aws_access_key_id=api_dict.get('aws_access_key_id'),
+            aws_secret_access_key=api_dict.get('aws_secret_access_key')
+        )
+    else:
+        bedrock_rt_client = boto3.client(
+            service_name='bedrock-runtime',
+            region_name=aws_region,)
+    
+    output = API_ERROR_OUTPUT
+    
+    #get kwargs from settings
+    temperature= kwargs["temperature"]
+    max_tokens= kwargs["max_tokens"]
+    model = kwargs["model_id"]
+    
+    sys_msg = ""
+    if messages[0]["role"] == "system":
+        sys_msg = messages[0]["content"]
+        messages = messages[1:]
+    else:
+        prompt = messages[0]['content']
+
+    
+    # Retry logic for API calls
+    for _ in range(API_MAX_RETRY):
+        try:
+            # Prepare request body
+            prompt_json = {
+                "system": sys_msg,
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "anthropic_version": "bedrock-2023-05-31",
+                "stop_sequences": ["Human"]
+            }
+
+            # Call Bedrock API
+            response = bedrock_rt_client.invoke_model(
+                body=json.dumps(prompt_json),
+                modelId=model,
+                accept='application/json',
+                contentType='application/json'
+            )
+            
+            # Parse response
+            response_body = json.loads(response.get('body').read())
+            output = {"answer":response_body.get("content")[0].get("text")}
+            break
+            
+        except Exception as e:
+            print(type(e), e)
+            time.sleep(API_RETRY_SLEEP)
+            
+    return output
+
+@register_api("aws_mistral")
+def chat_completion_aws_bedrock_mistral(messages, api_dict=None, aws_region="us-west-2", **kwargs):
+    """
+    Call AWS Bedrock API for chat completion
+    
+    Args:
+        model (str): Model ID
+        conv (object): Conversation object containing messages
+        temperature (float): Temperature parameter for response generation
+        max_tokens (int): Maximum tokens in response
+        api_dict (dict, optional): API configuration dictionary
+        aws_region (str, optional): AWS region, defaults to "us-west-2"
+        
+    Returns:
+        str: Generated response text or error message
+    """
+        
+    # Configure AWS client if api_dict provided
+    if api_dict is not None:
+        bedrock_rt_client = boto3.client(
+            service_name='bedrock-runtime',
+            region_name=aws_region,
+            aws_access_key_id=api_dict.get('aws_access_key_id'),
+            aws_secret_access_key=api_dict.get('aws_secret_access_key')
+        )
+    else:
+        bedrock_rt_client = boto3.client(
+            service_name='bedrock-runtime',
+            region_name=aws_region,)
+    
+    output = API_ERROR_OUTPUT
+
+    #get kwargs from settings
+    temperature= kwargs["temperature"]
+    max_tokens= kwargs["max_tokens"]
+    model = kwargs["model_id"]
+    
+    # Retry logic for API calls
+    for _ in range(API_MAX_RETRY):
+        try:
+            ## =============== Format prompt ================
+            prompt = "\n".join([content for message in messages for content in message["content"]])
+            formatted_prompt = f"<s>[INST] {prompt.strip()} [/INST]"            
+            body = {
+                "prompt": formatted_prompt,
+                "max_tokens": max_tokens,
+                "stop": ["Human:"],
+                "temperature": temperature,
+            }
+
+            # Call Bedrock API
+            response = bedrock_rt_client.invoke_model(
+                body=json.dumps(body),
+                modelId=model,
+                accept='application/json',
+                contentType='application/json'
+            )
+            
+            # Parse response
+            response_body = json.loads(response.get('body').read())
+            
+            if "pixtral-large" in model: #us.mistral.pixtral-large-2502-v1:0
+                output = {"answer": response_body.get("choices")[0].get("message").get("content")}
+            else:
+                output = {"answer": response_body.get("outputs")[0].get("text")}
+      
+            break
+            
+        except Exception as e:
+            print(type(e), e)
+            time.sleep(API_RETRY_SLEEP)
+            
+    return output
+
+
+@register_api("aws_llama")
+def chat_completion_aws_bedrock_llama(messages, api_dict=None, aws_region="us-west-2", **kwargs):
+    """
+    Call AWS Bedrock API for chat completion using Llama models
+
+    Args:
+    model (str): Model ID
+    conv (object): Conversation object containing messages
+    temperature (float): Temperature parameter for response generation
+    max_tokens (int): Maximum tokens in response
+    api_dict (dict, optional): API configuration dictionary
+    aws_region (str, optional): AWS region, defaults to "us-west-2"
+
+    Returns:
+    str: Generated response text or error message
+    """
+
+    # Configure AWS client if api_dict provided
+    if api_dict is not None:
+        bedrock_rt_client = boto3.client(
+            service_name='bedrock-runtime',
+            region_name=aws_region,
+            aws_access_key_id=api_dict.get('aws_access_key_id'),
+            aws_secret_access_key=api_dict.get('aws_secret_access_key')
+        )
+    else:
+        bedrock_rt_client = boto3.client(
+            service_name='bedrock-runtime',
+            region_name=aws_region,
+        )
+
+    output = API_ERROR_OUTPUT
+    
+    #get kwargs from settings
+    temperature= kwargs["temperature"]
+    max_tokens= kwargs["max_tokens"]
+    model = kwargs["model_id"]
+    
+    # Retry logic for API calls
+    for _ in range(API_MAX_RETRY):
+        try:
+            # Prepare request body using the create_llama3_body function
+            prompt_json = create_llama3_body(
+                messages,
+                max_gen_len=max_tokens,
+                temperature=temperature                
+            )
+
+            # Call Bedrock API
+            response = bedrock_rt_client.invoke_model(
+                body=prompt_json,
+                modelId=model,
+                accept='application/json',
+                contentType='application/json'
+            )
+
+            # Parse response
+            response_body = json.loads(response.get('body').read())
+            output = {"answer" : response_body.get("generation", "")}
+            break
+
+        except Exception as e:
+            print(type(e), e)
+            time.sleep(API_RETRY_SLEEP)
+
+    return output
+
+def create_llama3_body(messages, max_gen_len=2048, temperature=0.0, top_p=0.9, top_k=1):
+    """
+    Create a request body for Llama 3 models.
+
+    Args:
+    messages (list): List of message dictionaries.
+    max_gen_len (int): Maximum generation length.
+    temperature (float): Temperature for sampling.
+    top_p (float): Top-p sampling parameter.
+    top_k (int): Top-k sampling parameter.
+
+    Returns:
+    str: JSON-encoded string representing the request body for Llama 3 models.
+
+    This function formats the input messages into a prompt suitable for Llama 3 models,
+    including specific formatting tags, and creates a structured request body.
+    """
+    prompt = "\n".join([content for message in messages for content in message["content"]])
+    formatted_prompt = f"""
+    <|begin_of_text|>
+    <|start_header_id|>user<|end_header_id|>
+    {prompt.strip()}
+    <|eot_id|>
+    <|start_header_id|>assistant<|end_header_id|>
+    """
+    return json.dumps({
+        "prompt": formatted_prompt,
+        "max_gen_len": max_gen_len,
+        "temperature": temperature,
+        "top_p": top_p,
+    })
+
+@register_api("aws_nova")
+def chat_completion_aws_bedrock_nova( messages, api_dict=None, aws_region="us-west-2", **kwargs):
+    """
+    Call AWS Bedrock API for chat completion using Nova models
+
+    Args:
+    model (str): Model ID
+    conv (object): Conversation object containing messages
+    temperature (float): Temperature parameter for response generation
+    max_tokens (int): Maximum tokens in response
+    api_dict (dict, optional): API configuration dictionary
+    aws_region (str, optional): AWS region, defaults to "us-west-2"
+
+    Returns:
+    str: Generated response text or error message
+    """
+
+    # Configure AWS client if api_dict provided
+    
+    if api_dict is not None:
+        bedrock_rt_client = boto3.client(
+            service_name='bedrock-runtime',
+            region_name=aws_region,
+            aws_access_key_id=api_dict.get('aws_access_key_id'),
+            aws_secret_access_key=api_dict.get('aws_secret_access_key')
+        )
+    else:
+        bedrock_rt_client = boto3.client(
+            service_name='bedrock-runtime',
+            region_name=aws_region,
+        )
+
+    output = API_ERROR_OUTPUT
+
+    #get kwargs from settings
+    temperature= kwargs["temperature"]
+    max_tokens= kwargs["max_tokens"]
+    model = kwargs["model_id"]
+
+    print(f"From nova chat completion in completion.py {temperature}, '  ', {max_tokens}, '  ', {model} \n")
+
+    # Retry logic for API calls
+    for _ in range(API_MAX_RETRY):
+        try:
+            # Create messages from conversation
+            messages = create_nova_messages(messages)
+            inferenceConfig = {
+                "max_new_tokens": max_tokens,
+                "temperature": temperature                 
+            }
+
+            # Prepare request body
+            model_kwargs = {"messages": messages,
+                            "inferenceConfig": inferenceConfig,}
+            body = json.dumps(model_kwargs)
+
+            # Call Bedrock API
+            response = bedrock_rt_client.invoke_model(
+                body=body,
+                modelId=model,
+                accept='application/json',
+                contentType='application/json'
+            )
+
+            # Parse response
+            response_body = json.loads(response.get('body').read())
+            output = {"answer": response_body['output']['message']['content'][0]['text']}
+            break
+
+        except Exception as e:
+            print(type(e), e)
+            time.sleep(API_RETRY_SLEEP)
+
+    return output
+
+def extract_innermost_text(content):
+    """Recursively extract the innermost `text` value from a deeply nested structure."""
+    if isinstance(content, list) and content:  # If content is a list, dive into the first element
+        return extract_innermost_text(content[0])
+    elif isinstance(content, dict) and "text" in content:  # If content is a dictionary, dive into the 'text' key
+        return extract_innermost_text(content["text"])
+    elif isinstance(content, str):  # Base case: return the string when reached
+        return content
+    return ""  # Fallback in case the structure is invalid
+
+def create_nova_messages(messages):
+    """
+    Create messages array for Nova models from conversation
+
+    Args:
+    conv (object): Conversation object containing messages
+
+    Returns:
+    list: List of formatted messages for Nova model
+    """
+    messages_formatted = []    
+    # Format the first message with template
+    for mesg in messages:        
+        # Transform the message
+        transformed_message = {
+            "role": mesg["role"],
+            "content": extract_innermost_text(mesg["content"])
+        }
+        messages_formatted.append({
+            "role": "user",
+            "content": [
+                { 
+                    "text": transformed_message['content']
+                }
+            ]
+        })    
+    return messages_formatted
+
+import sys
+import re
+
+def extract_answer(text):
+    """
+    Extract the content after the </think> tag.
+    
+    Args:
+        text (str): Input text that may contain a </think> tag
+        
+    Returns:
+        str: Text after the </think> tag, or the original text if tag not found
+    """
+    # Look for the </think> tag
+    match = re.search(r'</think>(.*)', text, re.DOTALL)
+    
+    if match:
+        # Return only the content after the tag
+        return match.group(1).strip()
+    else:
+        # If tag not found, return empty string
+        return ""
+
+@register_api("aws_deepseek")
+def chat_completion_aws_bedrock_deepseek(messages, api_dict=None, aws_region="us-west-2", **kwargs):
+    """
+    Call AWS Bedrock API for chat completion using DeepSeek models
+
+    Args:
+    model (str): Model ID
+    conv (object): Conversation object containing messages
+    temperature (float): Temperature parameter for response generation
+    max_tokens (int): Maximum tokens in response
+    api_dict (dict, optional): API configuration dictionary
+    aws_region (str, optional): AWS region, defaults to "us-west-2"
+
+    Returns:
+    str: Generated response text or error message
+    """
+
+    # Configure AWS client if api_dict provided
+    if api_dict is not None:
+        bedrock_rt_client = boto3.client(
+            service_name='bedrock-runtime',
+            region_name=aws_region,
+            aws_access_key_id=api_dict.get('aws_access_key_id'),
+            aws_secret_access_key=api_dict.get('aws_secret_access_key')
+        )
+    else:
+        bedrock_rt_client = boto3.client(
+            service_name='bedrock-runtime',
+            region_name=aws_region,
+        )
+
+    output = API_ERROR_OUTPUT
+
+    #get kwargs from settings
+    temperature= kwargs["temperature"]
+    max_tokens= kwargs["max_tokens"]
+    model = kwargs["model_id"]
+    
+
+    # Retry logic for API calls
+    for _ in range(API_MAX_RETRY):
+        try:
+            # Create messages from conversation            
+            # Embed the prompt in DeepSeek-R1's instruction format.            
+            prompt = "\n".join([content for message in messages for content in message["content"]])
+            formatted_prompt = f"""
+            <｜begin▁of▁sentence｜><｜User｜>{prompt.strip()}<｜Assistant｜><think>\n
+            """
+           
+            # Prepare request body          
+            body = json.dumps({
+                                "prompt": formatted_prompt,
+                                "max_tokens": max_tokens,
+                                "temperature": temperature,
+                                "top_p": 0.9,
+                            })
+
+
+            # Call Bedrock API
+            response = bedrock_rt_client.invoke_model(
+                body=body,
+                modelId=model,
+                accept='application/json',
+                contentType='application/json'
+            )
+            
+            # Parse response
+            response_body = json.loads(response.get('body').read()) 
+            
+            # Extract choices
+            choices = response_body["choices"]                
+            output = {
+                "answer": extract_answer(choices[0]['text'])
+            }
+            
+            break
+
+        except Exception as e:
+            
+            time.sleep(API_RETRY_SLEEP)
+
+    return output
