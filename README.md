@@ -266,6 +266,69 @@ Statistical measures like Pearson (Pearson, 1895) and Spearman Correlations (Spe
 
 For **Agreement with Confidence**, and **Pair Rank Brier Score**, please refer to section 3 of our [paper](https://arxiv.org/abs/2406.11939). The code for calculating these metrics can be found in this [colab notebook](https://colab.research.google.com/drive/1ar6XLWREN_dXEh404WNOxroFVUe_4njp). 
 
+## Integration with Amazon Bedrock API
+We have now added the capability to benchmark LLMs hosted on **Amazon Bedrock** with arena-hard. Specifically, we added Amazon Bedrock invoke API in `utils/completion.py` which will allow you to use different models hosted on Amazon Bedrock with Arena-Hard.
+
+
+Currently we support the following models:
+1. Anthropic Models : Claude 3 Haiku, Claude 3 Sonnet, Claude 3.5 Sonnet, Claude 3 Opus, Claude 3.5 Sonnet v2, Claude 3.7 Sonnet
+2. Mistral Models: Mistral 7B Instruct, Mistral 8x7B Instruct, Mistral Large v1, Mistral Large v2, Mistral Small, Pixtral Large
+3. Meta Llama Models: LLaMA 3 8B Instruct, LLaMA 3 70B Instruct, LLaMA 3.1 8B Instruct, LLaMA 3.1 70B Instruct, LLaMA 3.1 405B Instruct
+   LLaMA 3.2 1B Instruct, LLaMA 3.2 3B Instruct, LLaMA 3.2 11B Instruct, LLaMA 3.2 90B Instruct, LLaMA 2 Chat 13B, LLaMA 2 Chat 70B
+4. Amazon Nova Models: Amazon Nova Lite, Amazon Nova Pro, Amazon Nova Micro, Amazon Nova Premier
+5. DeepSeek-R1
+
+To **Add a new model hosted on Amazon Bedrock**, you need to update two files: `config/api_config.yaml` and `utils/completion.py`.
+
+
+### 1. Update `config/api_config.yaml`
+
+Define a new entry for the model with the correct `model_id`, `api_type`, and generation parameters.
+
+**Example:**
+
+```yaml
+aws_nova_light_v1:
+  model: aws_nova_light_v1
+  model_id: us.amazon.nova-lite-v1:0
+  endpoints: null
+  api_type: aws_nova
+  parallel: 8
+  max_tokens: 4096
+  temperature: 0.0
+```
+**Key Fields**
+1. model: Internal alias used for referencing this config.
+2. model_id: Bedrock-specific model identifier.
+3. api_type: The api_type should be registered through `utils\completion.py`
+4. endpoints: Set to null for default Bedrock endpoint, or override with custom endpoint.
+5. parallel: Controls parallel inference calls (adjust for throughput).
+6. max_tokens: Maximum output tokens.
+7. temperature: Controls randomness of generation (0.0 for deterministic).
+
+Refer to Amazon Bedrock documentation (https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html) for model IDs and capabilities.
+
+### 2. Register a Model Handler in `utils/completion.py`
+Create a new function decorated with `@register_api("<api_type>")` to define how inputs are formatted, sent to Bedrock using boto3, and how the response is parsed.
+
+You can use existing examples as templates:
+
+    > @register_api("aws_llama") handles LLaMA models
+    > @register_api("aws_nova") handles Nova models
+
+These functions typically use helpers like `create_llama3_body()` or `create_nova_messages()` and send requests using the Bedrock `invoke_model` API.
+
+**Pay attention to**:
+
+    > The api_type in `api_config.yaml` which must match the name used in the `@register_api(...)` decorator.
+    > Input formatting (e.g., prompt structure, message lists)
+    > Parameter mapping (temperature, max_tokens, model_id)
+    > Response parsing (e.g., generation vs nested output.message.content)
+
+By following this two-step process, users can easily extend support to any Bedrock-hosted model that follows a compatible invocation structure.
+For examples, see existing handlers for Claude, LLaMA, and Amazon Nova in the repository.
+
+
 ## Community Contribution
 
 Feel free to submit a PR or open up an issue!
