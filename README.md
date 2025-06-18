@@ -306,6 +306,7 @@ aws_nova_light_v1:
 6. max_tokens: Maximum output tokens.
 7. temperature: Controls randomness of generation (0.0 for deterministic).
 
+Find more example in `config/api_config_bedrock_models.yaml`
 Refer to Amazon Bedrock documentation (https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html) for model IDs and capabilities.
 
 ### 2. Register a Model Handler in `utils/completion.py`
