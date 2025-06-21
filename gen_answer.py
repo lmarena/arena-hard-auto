@@ -40,7 +40,10 @@ def get_answer(
         "api_dict": get_endpoint(settings["endpoints"]),
         "messages": messages,
     }
+    
+    
     output = api_completion_func(**kwargs)
+        
     if output is API_ERROR_OUTPUT:
         return
     
