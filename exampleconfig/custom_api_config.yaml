@@ -1,0 +1,10 @@
+qwen2.5-1.5b-instruct:
+    model: Qwen/Qwen2.5-1.5B-Instruct
+    endpoints:
+      - api_base: http://127.0.0.1:8000/v1
+        api_key: '-'
+    api_type: openai
+    temperature: 0.6
+    end_think_token: "</think>"
+    max_tokens: 18000
+    parallel: 1

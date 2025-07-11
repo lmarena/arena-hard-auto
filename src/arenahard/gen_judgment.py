@@ -6,7 +6,7 @@ import concurrent.futures
 
 from tqdm import tqdm
 
-from utils.completion import (
+from arenahard.utils.completion import (
     load_questions,
     registered_api_completion,
     load_questions,
@@ -15,7 +15,7 @@ from utils.completion import (
     make_config,
 )
 
-from utils.judge_utils import JUDGE_SETTINGS
+from arenahard.utils.judge_utils import JUDGE_SETTINGS
 
 
 def get_score(judgment, patterns):
@@ -118,18 +118,31 @@ def judgment(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--setting-file", type=str, default="config/arena-hard-v2.0.yaml")
-    parser.add_argument("--endpoint-file", type=str, default="config/api_config.yaml")
+    parser.add_argument(
+        "--setting-file", type=str, default=os.path.join("config", "arena-hard-v2.0.yaml")
+    )
+    parser.add_argument(
+        "--endpoint-file", type=str, default=os.path.join("config", "api_config.yaml")
+    )
+    parser.add_argument(
+        "--config-path", type=str, default=os.path.join(".", "src", "arenahard" )
+    )
+    parser.add_argument(
+        "--question-path", type=str, default=os.path.join(".", "src", "arenahard", "data")
+    )
+    parser.add_argument(
+        "--answer-path", type=str, default=os.path.join(".", "src", "arenahard", "data")
+    )
     args = parser.parse_args()
     print(args)
 
-    configs = make_config(args.setting_file)
-    endpoint_list = make_config(args.endpoint_file)
+    configs = make_config(os.path.join(args.config_path, args.setting_file))
+    endpoint_list = make_config(os.path.join(args.config_path, args.endpoint_file))
 
     print(f'judge model: {configs["judge_model"]}, reference: {configs["reference"]}, temperature: {configs["temperature"]}, max tokens: {configs["max_tokens"]}')
 
-    question_file = os.path.join("data", configs["bench_name"], "question.jsonl")
-    answer_dir = os.path.join("data", configs["bench_name"], "model_answer")
+    question_file = os.path.join(args.question_path, configs["bench_name"], "question.jsonl")
+    answer_dir = os.path.join(args.answer_path, configs["bench_name"], "model_answer")
 
     questions = load_questions(question_file)
     model_answers = load_model_answers(answer_dir)
@@ -144,7 +157,7 @@ if __name__ == "__main__":
         ref_answers = None
     
     output_files = {}
-    output_dir = f"data/{configs['bench_name']}/model_judgment/{configs['judge_model']}"
+    output_dir = f"{args.config_path}/{configs['bench_name']}/model_judgment/{configs['judge_model']}"
     for model in models:
         output_files[model] = os.path.join(
             output_dir,

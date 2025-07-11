@@ -1,0 +1,16 @@
+judge_model: qwen2.5-1.5b-instruct
+temperature: 0.0
+max_tokens: 18000
+
+bench_name: arena-hard-v2.0
+
+reference: null
+
+regex_patterns:
+  - \[\[([AB<>=]+)\]\]
+  - \[([AB<>=]+)\]
+
+prompt_template: "<|User Prompt|>\n{QUESTION}\n\n<|The Start of Assistant A's Answer|>\n{ANSWER_A}\n<|The End of Assistant A's Answer|>\n\n<|The Start of Assistant B's Answer|>\n{ANSWER_B}\n<|The End of Assistant B's Answer|>"
+
+model_list:
+  - qwen2.5-1.5b-instruct

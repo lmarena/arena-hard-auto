@@ -1,0 +1,5 @@
+bench_name: arena-hard-v2.0
+
+# a list of model to generate answers
+model_list:
+  - qwen2.5-1.5b-instruct

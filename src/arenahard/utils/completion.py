@@ -13,7 +13,7 @@ import boto3
 from glob import glob
 from tqdm import tqdm
 
-from utils.bedrock_utils import create_llama3_body, create_nova_messages, extract_answer
+from arenahard.utils.bedrock_utils import create_llama3_body, create_nova_messages, extract_answer
 
 # API setting constants
 API_MAX_RETRY = 3

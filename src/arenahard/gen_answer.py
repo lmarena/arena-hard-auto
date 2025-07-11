@@ -9,8 +9,8 @@ import tiktoken
 import shortuuid
 import tqdm
 
-from utils.add_markdown_info import count_markdown_elements, remove_pattern
-from utils.completion import (
+from arenahard.utils.add_markdown_info import count_markdown_elements, remove_pattern
+from arenahard.utils.completion import (
     load_questions,
     load_model_answers,
     make_config,
@@ -76,19 +76,29 @@ def get_answer(
 
 
 if __name__ == "__main__":
+    import os
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--config-file", type=str, default="config/gen_answer_config.yaml"
+        "--config-file", type=str, default=os.path.join("config", "gen_answer_config.yaml")
     )
     parser.add_argument(
-        "--endpoint-file", type=str, default="config/api_config.yaml"
+        "--endpoint-file", type=str, default=os.path.join("config", "api_config.yaml")
+    )
+    parser.add_argument(
+        "--config-path", type=str, default=os.path.join(".", "src", "arenahard" )
+    )
+    parser.add_argument(
+        "--question-path", type=str, default=os.path.join(".", "src", "arenahard", "data")
+    )
+    parser.add_argument(
+        "--answer-path", type=str, default=os.path.join(".", "src", "arenahard", "data")
     )
     args = parser.parse_args()
 
-    config = make_config(args.config_file)
-    endpoints = make_config(args.endpoint_file)
+    config = make_config(os.path.join(args.config_path, args.config_file))
+    endpoints = make_config(os.path.join(args.config_path, args.endpoint_file) )
 
-    existing_answer = load_model_answers(os.path.join("data", config["bench_name"], "model_answer"))
+    existing_answer = load_model_answers(os.path.join(args.answer_path, config["bench_name"], "model_answer"))
     
     print(config)
 
@@ -96,10 +106,10 @@ if __name__ == "__main__":
         assert model in endpoints
         endpoint_settings = endpoints[model]
 
-        question_file = os.path.join("data", config["bench_name"], "question.jsonl")
+        question_file = os.path.join(args.question_path, config["bench_name"], "question.jsonl")
         questions = load_questions(question_file)
 
-        answer_file = os.path.join("data", config["bench_name"], "model_answer", f"{model}.jsonl")
+        answer_file = os.path.join(args.answer_path, config["bench_name"], "model_answer", f"{model}.jsonl")
         print(f"Output to {answer_file}")
 
         if "parallel" in endpoint_settings:
